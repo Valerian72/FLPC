@@ -1,1 +1,1 @@
-# Foot-Loisir---FLPC
+# FLPC
