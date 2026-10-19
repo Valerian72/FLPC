@@ -83,22 +83,22 @@ import {initializeApp} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase
 import {initializeFirestore,doc,collection,setDoc,deleteDoc,onSnapshot} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
 /* ====== CONFIG FIREBASE ======
-   Même projet que Papayoo. Les collections de Foot Loisir sont préfixées "foot_"
-   pour ne pas se mélanger avec celles de Papayoo.
+   Remplace les 3 valeurs ci-dessous par celles de TON projet Firebase :
+   Console Firebase > Paramètres du projet (roue dentée) > Général > Vos applications > Application Web > "Configuration du SDK".
    Cette clé web n'est pas secrète (elle est visible dans toute appli web Firebase). */
 const firebaseConfig={
-  apiKey: "AIzaSyCuc87kR9leefzOcSlyJ2am7G1eJRXKrew",
-  authDomain: "flpc-eab14.firebaseapp.com",
-  projectId: "flpc-eab14",
+  apiKey:'AIzaSyCuc87kR9leefzOcSlyJ2am7G1eJRXKrew',
+  authDomain:'flpc-eab14.firebaseapp.com',
+  projectId:'flpc-eab14'
 };
-const PFX='foot_';
+const PFX='';
 
 try{
-  if(!firebaseConfig.apiKey||firebaseConfig.apiKey==='VOTRE_API_KEY')throw {code:'config',message:'Clé API Firebase manquante dans index.html.'};
+  if(!firebaseConfig.apiKey||/^VOTRE/.test(firebaseConfig.apiKey))throw {code:'config',message:'Firebase non configuré : le site fonctionne en mode local (voir le guide PDF, étape de configuration).'};
   const app=initializeApp(firebaseConfig);
   const store=initializeFirestore(app,{experimentalAutoDetectLongPolling:true});
   const clean=d=>JSON.parse(JSON.stringify(d));
-  const fail=e=>{console.error('Firestore',e);if(e&&e.code==='permission-denied')fbWarn('Firestore refuse l\'accès (permission-denied) : ajoute les règles pour les collections foot_*.');else fbWarn('Firebase : '+((e&&e.code)||'erreur')+'. Vérifie ta connexion.')};
+  const fail=e=>{console.error('Firestore',e);if(e&&e.code==='permission-denied')fbWarn('Firestore refuse l\'accès (permission-denied) : vérifie les règles Firestore (voir le guide PDF).');else fbWarn('Firebase : '+((e&&e.code)||'erreur')+'. Vérifie ta connexion.')};
   // Interface utilisée par l'application : db.collection(c).doc(id).set/delete et db.collection(c).onSnapshot
   window.__fbOk({collection:c=>{const p=PFX+c;return{
     doc:id=>({set:d=>setDoc(doc(store,p,id),clean(d)),delete:()=>deleteDoc(doc(store,p,id))}),
@@ -106,7 +106,7 @@ try{
 }catch(e){console.error(e);fbWarn(e.message||'Firebase indisponible.');window.__fbOk(null)}
 </script>
 <script>
-const VER="1.0";document.addEventListener("DOMContentLoaded",()=>{const v=document.getElementById("ver");if(v)v.textContent=VER});
+const VER="1.1";document.addEventListener("DOMContentLoaded",()=>{const v=document.getElementById("ver");if(v)v.textContent=VER});
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,5);
 const FORM={'4-4-2':[[50,92],[15,72],[38,74],[62,74],[85,72],[15,46],[38,50],[62,50],[85,46],[36,20],[64,20]],'4-3-3':[[50,92],[15,72],[38,74],[62,74],[85,72],[28,50],[50,54],[72,50],[20,22],[50,16],[80,22]],'3-5-2':[[50,92],[24,74],[50,76],[76,74],[10,48],[30,52],[50,44],[70,52],[90,48],[36,20],[64,20]]};
