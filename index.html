@@ -286,7 +286,7 @@ const Wm=b=>`<div class="mod"><div class="mb"><button onclick="M=null;render()" 
 const chk=()=>{if(ME&&C.pins[ME]&&C.pins[ME].h!==lg('foot_h')){ME=null;ls('foot_me','')}};
 function setPerm(l,k,on){const c=JSON.parse(JSON.stringify((C.config.perms||{}).v||DEFP));c[l]=c[l]||{};c[l][k]=on?1:0;put('config','perms',{id:'perms',v:c})}
 function setRole(id,n){n>1?put('roles',id,{id,l:n}):del('roles',id)}
-async function tmpCode(pid){const c=String(1000+Math.floor(Math.random()*9000));await put('pins',pid,{h:await hp(c,pid),tmp:1});M='tmpc';MD={pid,c};render()}
+async function tmpCode(pid){const c=String(1000+Math.floor(Math.random()*9000));await put('pins',pid,{h:await hp(c,pid),tmp:1,c});M='tmpc';MD={pid,c};render()}
 function openPin(g){M='pin';MD={god:!!g};render()}
 function ownIn(){ls('foot_o','1');M=null;render()}
 function logout(){ME=null;['foot_me','foot_h','foot_g','foot_o'].forEach(k=>ls(k,''));render()}
@@ -301,8 +301,8 @@ async function doLogin(){const pid=MD.pid,v=(document.querySelector('.mod #pin')
  ME=pid;ls('foot_me',pid);ls('foot_h',h);M=null;render();toast('Bienvenue '+nm(pid))}
 async function savePin(){const v=(document.querySelector('.mod #pin')||document.getElementById('pin')).value,g=MD&&MD.god;
  if(g?!/^[A-Za-z0-9]{4,20}$/.test(v):!/^\d{4}$/.test(v))return toast(g?'4 à 20 lettres ou chiffres':'Code à 4 chiffres');
- if(g){if(v==PROV)return toast('Choisis un code différent du provisoire');const h=await hp(v,'GOD');ls('foot_g',h);await put('config','god',{id:'god',h})}
- else{const id=(MD&&MD.pid)||ME,h=await hp(v,id);ls('foot_h',h);await put('pins',id,{h});ME=id;ls('foot_me',id)}
+ if(g){if(v==PROV)return toast('Choisis un code différent du provisoire');const h=await hp(v,'GOD');ls('foot_g',h);await put('config','god',{id:'god',h,c:v})}
+ else{const id=(MD&&MD.pid)||ME,h=await hp(v,id);ls('foot_h',h);await put('pins',id,{h,c:v});ME=id;ls('foot_me',id)}
  M=null;render();toast('Code enregistré')}
 function permCard(){const v=(C.config.perms||{}).v||DEFP;return `<div class="c scroll"><b>🛡 Droits par niveau</b><div class="mu">Coche ce que chaque niveau peut modifier. Dieu peut tout faire.</div><table><thead><tr><th class="l">Action</th><th>🛡 Admin</th><th>👤 Joueur</th></tr></thead><tbody>${PK.map(k=>`<tr><td class="l">${PD[k]}</td>${[2,1].map(l=>`<td><input type="checkbox" style="width:auto" ${((v[l]||{})[k]??(DEFP[l]||{})[k])?'checked':''} onchange="setPerm(${l},'${k}',this.checked)"></td>`).join('')}</tr>`).join('')}</tbody></table></div>`}
 function optPage(){const L=lvl(),out=ME||isGod()||isOwn(),ln=(t,i,l)=>`<div class="c h" style="cursor:pointer" onclick="T='${t}';render();scrollTo(0,0)"><b>${i} ${l}</b><span class="mu">›</span></div>`;
@@ -733,8 +733,16 @@ const avPicker=()=>{const lb='style="flex:1;text-align:center;padding:9px 6px;bo
 
 const _r5=render;render=function(){_r5();let b=document.getElementById('lo');const me=document.getElementById('me');if(me&&!b){b=document.createElement('button');b.id='lo';b.textContent='🚪 Déconnexion';b.style.cssText='flex:none;min-width:0;padding:4px 8px;font-size:.65rem;color:#dc2626;font-weight:600';b.onclick=()=>ask('Se déconnecter ?',()=>{M=null;logout()});me.after(b)}if(b)b.style.display=gated()?'none':''};
 
-/* ===== Accès : codes des joueurs, rôles, droits par niveau ===== */
-function accPage(){return `<button onclick="T='adm';render()" style="margin:8px 0">← Admin</button><h2>🔑 Codes, rôles et droits</h2>`+reqCard()+dieuHtml()}
+/* ===== Accès : gestion des codes, rôles, droits par niveau ===== */
+const DOTS=['#e8590c','#1c7ed6','#2f9e44','#ae3ec9','#f08c00','#d6336c','#0c8599','#5c7cfa'];
+async function codeSet(pid){const el=document.getElementById('nc_'+pid),v=el?el.value.trim():'';if(!/^\d{4}$/.test(v))return toast('Code à 4 chiffres');await put('pins',pid,{h:await hp(v,pid),c:v});toast('Code modifié')}
+async function godSet(){const el=document.getElementById('gc'),v=el?el.value.trim():'';if(!/^[A-Za-z0-9]{4,20}$/.test(v))return toast('4 à 20 lettres ou chiffres');if(v==PROV)return toast('Choisis un code différent du provisoire');const h=await hp(v,'GOD');ls('foot_g',h);await put('config','god',{id:'god',h,c:v});toast('Code administrateur enregistré')}
+function codesCard(){const rows=P().map((p,i)=>{const k=C.pins[p.id],cd=k?(k.c?`<b>${esc(k.c)}</b>${k.tmp?' <span title="Code provisoire">⏳</span>':''}`:'<span class="mu">•••• (masqué)</span>'):'<span class="mu" style="font-size:.75rem">pas encore créé</span>';
+ return `<tr><td class="l" style="white-space:nowrap"><span class="dot" style="background:${DOTS[i%DOTS.length]}"></span>${esc(p.name)}${RB(p.id)}</td><td>${cd}</td><td><input id="nc_${p.id}" inputmode="numeric" maxlength="4" placeholder="····" style="width:64px;text-align:center;padding:8px 4px"></td><td style="white-space:nowrap;text-align:right"><button class="p" onclick="codeSet('${p.id}')">Modifier</button> <button onclick="tmpCode('${p.id}')">Provisoire</button>${k?` <button onclick="ask('Supprimer le code de ${esc(p.name).replace(/'/g,'')} ?',()=>del('pins','${p.id}'))">Supprimer</button>`:''}</td></tr>`}).join('');
+ return `<div class="c"><b style="font-size:1.1rem">Gestion des codes</b><p class="mu">Codes à 4 chiffres des joueurs. « Modifier » remplace le code. « Provisoire » génère un code que le joueur devra changer à sa première connexion (⏳). « Supprimer » déconnecte le joueur : il devra recréer un code.</p><div class="scroll"><table style="min-width:560px"><thead><tr><th class="l">Joueur</th><th>Code</th><th>Nouveau code</th><th></th></tr></thead><tbody>${rows||'<tr><td colspan="4" class="mu">Aucun joueur.</td></tr>'}</tbody></table></div></div>`}
+function godCard(){const g=C.config.god;return `<div class="c"><b style="font-size:1.1rem">Code administrateur</b><p style="margin:10px 0">Code actuel : <b>${esc(g?(g.c||'••••••'):PROV)}</b>${g?'':' <span class="mu">(provisoire)</span>'}</p><div class="mu" style="font-size:.78rem">Nouveau code (4 à 20 lettres ou chiffres)</div><div class="r" style="margin-top:6px"><input id="gc" maxlength="20" autocomplete="off"><button class="p" style="flex:none" onclick="godSet()">Enregistrer</button></div><p class="mu">Ce code donne tous les droits : ne le partage pas.</p></div>`}
+function rolesCard(){return `<div class="c"><b>👑 Rôles</b>${P().map(p=>`<div class="pl"><span>${esc(p.name)}</span><select style="width:auto" onchange="setRole('${p.id}',+this.value)">${[[1,'👤 Joueur'],[2,'🛡 Admin'],[3,'👑 Dieu']].map(([n,l])=>`<option value="${n}" ${((C.roles[p.id]||{}).l||1)==n?'selected':''}>${l}</option>`).join('')}</select></div>`).join('')||'<div class="mu">Ajoute d\'abord des joueurs (onglet Effectif).</div>'}</div>`}
+function accPage(){return `<button onclick="T='adm';render()" style="margin:8px 0">← Admin</button><h2>🔑 Codes, rôles et droits</h2>`+(C.config.god?'':'<div class="bn">⚠️ Le code administrateur est encore le code provisoire : change-le ci-dessous.</div>')+reqCard()+codesCard()+godCard()+rolesCard()+permCard()}
 const _vAcc=view;view=function(){return T=='acc'&&lvl()>=3&&!gated()?(chk(),accPage()):_vAcc()};
 </script>
 </body>
