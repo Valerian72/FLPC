@@ -896,7 +896,7 @@ function impBody(){const s=impStats(),r=IMP&&IMP.rep,li=t=>`<div class="pl"><spa
  <button class="p" style="width:100%;min-height:46px;margin-top:6px" onclick="ask('${s.done?'Mettre à jour':'Importer'} le calendrier 2026-27 ?',importCal)">${s.done?'🔄 Mettre à jour l’import':'📥 Importer le calendrier'}</button>
  ${s.done?`<button class="dl" style="width:100%;min-height:42px;margin-top:10px" onclick="ask('Retirer les matchs et repas importés ? Les matchs déjà joués sont conservés.',unimportCal)">↩ Annuler l’import</button>`:''}`}
 var CALT='m';
-const _vCal=view;view=function(){if(!gated()&&T=='cal'&&can('match')){const bar=`<div style="display:flex;gap:8px;margin:8px 0"><button class="${CALT=='m'?'p':''}" style="flex:1;min-height:42px" onclick="CALT='m';render()">📅 Matchs</button><button class="${CALT=='imp'?'p':''}" style="flex:1;min-height:42px" onclick="CALT='imp';render()">📥 Import</button></div>`;if(CALT=='imp')return bar+impBody();return bar+_vCal()}return _vCal()};
+const _vCal=view;view=function(){if(!gated()&&T=='calm'&&can('match')){const bar=`<div style="display:flex;gap:8px;margin:8px 0"><button class="${CALT=='m'?'p':''}" style="flex:1;min-height:42px" onclick="CALT='m';render()">📅 Calendrier</button><button class="${CALT=='imp'?'p':''}" style="flex:1;min-height:42px" onclick="CALT='imp';render()">📥 Import</button></div>`;if(CALT=='imp')return `<button onclick="T='adm';render()" style="margin:8px 0">← Admin</button><h2>📅 Calendrier des matchs</h2>`+bar+impBody();const h=_vCal(),i=h.indexOf('</h2>');return i<0?bar+h:h.slice(0,i+5)+bar+h.slice(i+5)}return _vCal()};
 </script>
 </body>
 </html>
