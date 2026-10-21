@@ -780,7 +780,7 @@ DEFP[1.5]=Object.fromEntries(PK.map(k=>[k,DEFP[1][k]||0]));['conv','compo','stat
 /* ===== Gestion des joueurs et admins : mobile, filtres, partage, historique, sécurité ===== */
 var QS='',OPN={},SHW={},MNU=null,SHT='';
 const isMob=()=>innerWidth<700;
-var _wasM=isMob();addEventListener('resize',()=>{if(isMob()!==_wasM){_wasM=isMob();if(T=='acc')render()}});
+var _wasM=isMob();addEventListener('resize',()=>{if(isMob()!==_wasM){_wasM=isMob();if(T=='acc'||T=='calm')render()}});
 const SEC=()=>!!(C.config.secure&&C.config.secure.on);
 function accLog(t){try{const it=((C.config.acclog||{}).items||[]).slice(-59);it.push({ts:Date.now(),who:wnm(),t});_put('config','acclog',{id:'acclog',items:it})}catch(e){}}
 const pinObj=(h,v,x)=>Object.assign({h},x||{},SEC()?{}:{c:v});
@@ -896,7 +896,32 @@ function impBody(){const s=impStats(),r=IMP&&IMP.rep,li=t=>`<div class="pl"><spa
  <button class="p" style="width:100%;min-height:46px;margin-top:6px" onclick="ask('${s.done?'Mettre à jour':'Importer'} le calendrier 2026-27 ?',importCal)">${s.done?'🔄 Mettre à jour l’import':'📥 Importer le calendrier'}</button>
  ${s.done?`<button class="dl" style="width:100%;min-height:42px;margin-top:10px" onclick="ask('Retirer les matchs et repas importés ? Les matchs déjà joués sont conservés.',unimportCal)">↩ Annuler l’import</button>`:''}`}
 var CALT='m';
-const _vCal=view;view=function(){if(!gated()&&T=='calm'&&can('match')){const bar=`<div style="display:flex;gap:8px;margin:8px 0"><button class="${CALT=='m'?'p':''}" style="flex:1;min-height:42px" onclick="CALT='m';render()">📅 Calendrier</button><button class="${CALT=='imp'?'p':''}" style="flex:1;min-height:42px" onclick="CALT='imp';render()">📥 Import</button></div>`;if(CALT=='imp')return `<button onclick="T='adm';render()" style="margin:8px 0">← Admin</button><h2>📅 Calendrier des matchs</h2>`+bar+impBody();const h=_vCal(),i=h.indexOf('</h2>');return i<0?bar+h:h.slice(0,i+5)+bar+h.slice(i+5)}return _vCal()};
+const _vCal=view;view=function(){if(!gated()&&T=='calm'&&can('match')){const bar=`<div style="display:flex;gap:8px;margin:8px 0"><button class="${CALT=='m'?'p':''}" style="flex:1;min-height:42px" onclick="CALT='m';render()">📅 Calendrier</button><button class="${CALT=='imp'?'p':''}" style="flex:1;min-height:42px" onclick="CALT='imp';render()">📥 Import</button></div>`;const hd=`<button onclick="T='adm';render()" style="margin:8px 0">← Admin</button><h2>📅 Calendrier des matchs</h2>`;return hd+bar+(CALT=='imp'?impBody():calmBody())}return _vCal()};
+
+/* ===== Calendrier des matchs (admin) : grille en lecture seule + tableau simplifié ===== */
+const CALCSS=`<style>.ct{width:100%;border-collapse:collapse}.ct th{font-size:.68rem;letter-spacing:.04em;text-transform:uppercase;color:var(--mu);font-weight:600;text-align:left;padding:6px 4px;border-bottom:1px solid var(--bd)}.ct td{padding:8px 4px;border-bottom:1px solid var(--bd);font-size:.85rem;vertical-align:middle}.ct td.sm{font-size:.72rem;color:var(--mu);border-bottom:1px solid var(--bd)}.ct tr.sub td{border-bottom:0;padding:0 4px 8px;font-size:.72rem;color:var(--mu)}.ct tr.has td:not(.xx){border-bottom:0}.ct .sc{white-space:nowrap;text-align:center;font-weight:700}.eb{background:none;border:0;box-shadow:none;padding:6px 8px;font-size:1rem;cursor:pointer;min-width:0}@media(max-width:700px){.ct td{font-size:.78rem;padding:8px 2px}}</style>`;
+function calmBody(){const s=SEA=='all'?seas(today()):SEA,y=+s.slice(0,4),by={},ed=can('match'),mob=isMob();
+ Object.values(C.matches).filter(m=>seas(m.date)==s).forEach(m=>(by[m.date]=by[m.date]||[]).push(m));
+ const tip=m=>solo(m)?(m.opp+(m.rem?' — '+m.rem:'')):((hm(m)?m.opp+' - '+TEAM:TEAM+' - '+m.opp)+(played(m)?' ('+scr(m)+')':'')),meals=Object.values(C.meals);
+ let g='';
+ for(let i=0;i<12;i++){const mo=(7+i)%12,yy=mo>=7?y:y+1,n=new Date(yy,mo+1,0).getDate(),off=(new Date(yy,mo,1).getDay()+6)%7;g+=`<div><div class="mo" style="margin:0 0 4px">${CM[i]} ${yy}</div><div class="cg">${'<i></i>'.repeat(off)}`;
+  for(let d=1;d<=n;d++){const ds=yy+'-'+String(mo+1).padStart(2,'0')+'-'+String(d).padStart(2,'0'),its=by[ds]||[],it=its[0];
+   if(it){const k=played(it)?res(it):ds>=today()?'U':'Z',t=its.map(tip).join(' / ');g+=`<b class="${k}" title="${esc(t)}" onclick="toast('${esc(t).replace(/'/g,'’')}')">${d}</b>`}else g+=`<span>${d}</span>`}
+  g+='</div></div>'}
+ const L=Object.values(by).flat().sort((a,b)=>a.date.localeCompare(b.date)),TS={a:'Amical',c:'Championnat',k:'Coupe',t:'Tournoi',e:'Entraînement',n:'Entre nous',o:'—'},
+ col={V:'#16a34a',D:'var(--rd)',N:'var(--mu)'},
+ rows=L.map(m=>{const sl=solo(m),home=!hm(m),ml=meals.find(x=>x.date==m.date),cu=ml?mealWho(ml):'',
+  dt=new Date(m.date+'T12:00').toLocaleDateString('fr-FR',{weekday:'short',day:'2-digit',month:'2-digit'}),
+  e1=sl?esc(m.opp):home?`<b>${esc(TEAM)}</b>`:esc(m.opp),e2=sl?'':home?esc(m.opp):`<b>${esc(TEAM)}</b>`,
+  sc=played(m)?`<span style="color:${col[res(m)]}">${scr(m)}</span>`:'',
+  rm=[m.place,m.rdv&&'RDV '+m.rdv,m.time&&'M '+m.time,m.rem,m.status=='rep'?'REPORTÉ':m.status=='ann'?'ANNULÉ':''].filter(Boolean).map(esc).join(' · '),
+  pen=ed?`<button class="eb" onclick="openM('${m.id}')" aria-label="Modifier ce match">✏️</button>`:'',
+  names=sl?`<td colspan="2">${e1}</td>`:`<td>${e1}</td><td>${e2}</td>`,
+  extra=mob?[TS[m.mode]||'',cu&&'🍽 '+esc(cu),rm].filter(Boolean).join(' · '):'';
+  return mob?`<tr class="${extra?'has':''}"><td style="white-space:nowrap">${dt}</td>${names}<td class="sc">${sc}</td><td>${pen}</td></tr>${extra?`<tr class="sub"><td colspan="5">${extra}</td></tr>`:''}`
+   :`<tr><td style="white-space:nowrap">${dt}</td><td>${TS[m.mode]||''}</td>${names}<td>${esc(cu)}</td><td class="sc">${sc}</td><td class="sm">${rm}</td><td>${pen}</td></tr>`}).join(''),
+ head=mob?'<th>Date</th><th colspan="2">Match</th><th style="text-align:center">Score</th><th></th>':'<th>Date</th><th>Type</th><th>Équipe 1</th><th>Équipe 2</th><th>Cuistots</th><th style="text-align:center">Score</th><th>Remarques</th><th></th>';
+ return CALCSS+`<select onchange="SEA=this.value;render()">${seasons().map(x=>`<option value="${x}" ${x==s?'selected':''}>Saison ${x}</option>`).join('')}</select><div class="c"><div class="mu">Calendrier en lecture seule : survole un jour (ou touche-le) pour voir le match. Les modifications se font dans le tableau.</div><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-top:10px">${g}</div></div><div class="c"><div class="h"><b>Matchs de la saison (${L.length})</b>${ed?`<button class="p" onclick="openM()">＋ Ajouter</button>`:''}</div><div class="scroll"><table class="ct"><thead><tr>${head}</tr></thead><tbody>${rows||'<tr><td colspan="8" class="mu">Aucun match cette saison.</td></tr>'}</tbody></table></div></div>`}
 </script>
 </body>
 </html>
