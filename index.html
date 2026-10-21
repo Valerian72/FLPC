@@ -690,7 +690,7 @@ const _ow=openWz;openWz=function(id){_ow(id);if(WZ&&!Object.keys(WZ.pl).length&&
 /* ===== v22 : admin réorganisé ===== */
 function admPage(){const sec=(t,x)=>`<div style="font-weight:700;margin:18px 0 6px">${t}</div>${x}`,go=t=>`T='${t}';render();scrollTo(0,0)`;
  let h=`<h2>🛡 Admin</h2>`;
- h+=sec('🌐 Matchs',prow('📅','Calendrier des matchs',go('calm'))+prow('📨','Convocations',go('cv'))+prow('📋','Composition',go('cp'))+prow('🏟','Équipes adverses',go('gm'))+prow('⭐','Vote et notes',go('nts'))+prow('🕘','Historique',go('hist'))+(can('match')?prow('📥','Calendrier 2026-27',go('imp')):''));
+ h+=sec('🌐 Matchs',prow('📅','Calendrier des matchs',go('calm'))+prow('📨','Convocations',go('cv'))+prow('📋','Composition',go('cp'))+prow('🏟','Équipes adverses',go('gm'))+prow('⭐','Vote et notes',go('nts'))+prow('🕘','Historique',go('hist')));
  h+=sec('👥 Club',prow('👤','Membres',go('pl'))+prow('🏷','Détails de l\'équipe',go('tinfo'))+prow('🍽','Calendrier des repas',go('calr')));
  h+=sec('💰 Finances',prow('💶','Collectes',go('co'))+prow('🍺','Buvette',go('bv')));
  h+=sec('⚙️ Système',(accOK()?prow('👥','Gestion des comptes',go('acc')):'')+(lvl()>=3?prow('👑','Gestion des rôles',go('rol')):'')+prow('🔄','Mises à jour',go('maj')));
@@ -888,15 +888,15 @@ async function importCal(){if(!can('match'))return toast('Droit non accordé');
  }finally{render=_r}
  accLog('a importé le calendrier 2026-27 ('+(rep.m+rep.mu)+' matchs, '+rep.meal+' repas)');IMP={rep};render()}
 async function unimportCal(){const _r=render;render=()=>{};try{for(const m of Object.values(C.matches))if(m.src=='cal2627'&&!played(m))await _del('matches',m.id);for(const x of Object.values(C.meals))if(x.src=='cal2627')await _del('meals',x.id)}finally{render=_r}accLog('a annulé l’import du calendrier 2026-27');IMP=null;render()}
-function impPage(){const s=impStats(),r=IMP&&IMP.rep,li=t=>`<div class="pl"><span>${t[0]}</span><b>${t[1]}</b></div>`;
- return `<button onclick="T='adm';IMP=null;render()" style="margin:8px 0">← Admin</button><h2>📥 Calendrier 2026-27</h2>
- <div class="c"><b>Contenu du fichier</b><p class="mu">Calendrier_2026-27 PDC loisirs : planning et feuille « Stade Horaire ».</p>${li(['📅 Matchs',s.mt+' ('+s.ch+' championnat · '+s.am+' amicaux · '+s.tn+' tournoi)'])}${li(['🚫 Pas de match / exempt',s.off])}${li(['🍽 Repas avec cuistots',s.meal])}${li(['🏆 Résultats déjà joués',s.res])}${li(['🏟 Équipes (stades, RDV, horaires, notes)',s.teams])}</div>
+function impBody(){const s=impStats(),r=IMP&&IMP.rep,li=t=>`<div class="pl"><span>${t[0]}</span><b>${t[1]}</b></div>`;
+ return `<div class="c"><b>📥 Import du calendrier 2026-27</b><p class="mu" style="margin:4px 0 0">Contenu du fichier</p><p class="mu">Calendrier_2026-27 PDC loisirs : planning et feuille « Stade Horaire ».</p>${li(['📅 Matchs',s.mt+' ('+s.ch+' championnat · '+s.am+' amicaux · '+s.tn+' tournoi)'])}${li(['🚫 Pas de match / exempt',s.off])}${li(['🍽 Repas avec cuistots',s.meal])}${li(['🏆 Résultats déjà joués',s.res])}${li(['🏟 Équipes (stades, RDV, horaires, notes)',s.teams])}</div>
  <div class="c"><b>Ce que fait l’import</b><p class="mu" style="margin:6px 0 0">• Calendrier des matchs : dates, adversaires, domicile ou extérieur, type, lieu, RDV, heure de match et remarques (coupe, vacances…).<br>• Calendrier des repas : cuistots de chaque match à domicile (jusqu’à 2 par repas).<br>• Résultats : scores, buteurs et passeurs des matchs déjà joués.<br>• Équipes adverses : stade, RDV, heure de match, notes (halal, herbe, synthétique).<br>• Les matchs ou repas que tu as créés toi-même à la même date ne sont jamais écrasés.</p></div>
  ${r?`<div class="c" style="border-left:4px solid var(--ac)"><b>✅ Import terminé</b><p class="mu" style="margin:6px 0 0">${r.m} match(s) créé(s), ${r.mu} mis à jour · ${r.meal} repas · ${r.res} résultat(s) · ${r.t} équipe(s) créée(s), ${r.tu} complétée(s)${r.np.length?`<br>Joueurs ajoutés (buteurs ou passeurs absents de l’effectif) : ${esc(r.np.join(', '))}`:''}${r.sk.length?`<br>Ignorés (déjà un match saisi à cette date) : ${esc(r.sk.join(' · '))}`:''}${r.skm?`<br>${r.skm} repas déjà saisi(s) conservé(s).`:''}</p></div>`:''}
  ${s.conf?`<div class="bn">⚠️ ${s.conf} date(s) ont déjà un match saisi manuellement : elles seront ignorées.</div>`:''}
  <button class="p" style="width:100%;min-height:46px;margin-top:6px" onclick="ask('${s.done?'Mettre à jour':'Importer'} le calendrier 2026-27 ?',importCal)">${s.done?'🔄 Mettre à jour l’import':'📥 Importer le calendrier'}</button>
  ${s.done?`<button class="dl" style="width:100%;min-height:42px;margin-top:10px" onclick="ask('Retirer les matchs et repas importés ? Les matchs déjà joués sont conservés.',unimportCal)">↩ Annuler l’import</button>`:''}`}
-const _vImp=view;view=function(){if(!gated()&&T=='imp'&&can('match'))return chk(),impPage();return _vImp()};
+var CALT='m';
+const _vCal=view;view=function(){if(!gated()&&T=='cal'&&can('match')){const bar=`<div style="display:flex;gap:8px;margin:8px 0"><button class="${CALT=='m'?'p':''}" style="flex:1;min-height:42px" onclick="CALT='m';render()">📅 Matchs</button><button class="${CALT=='imp'?'p':''}" style="flex:1;min-height:42px" onclick="CALT='imp';render()">📥 Import</button></div>`;if(CALT=='imp')return bar+impBody();return bar+_vCal()}return _vCal()};
 </script>
 </body>
 </html>
