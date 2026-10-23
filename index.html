@@ -698,12 +698,12 @@ const _BALL='<circle cx="12" cy="12" r="9"/><path d="M12 7.5l3.8 2.8-1.4 4.4H9.6
  _GOAL='<path d="M3 20V8.5A1.5 1.5 0 014.5 7h15A1.5 1.5 0 0121 8.5V20"/><path d="M3 11.5h18M3 16h18M8 7v13M13 7v13M18 7v13" stroke-width="1" opacity=".5"/>',
  _FLAG='<path d="M8 3v18"/><path d="M8 3l10 3.6L8 10.2z" fill="currentColor" fill-opacity=".25"/><path d="M4 21h9"/>',
  _WALL='<circle cx="6" cy="5.5" r="1.8"/><circle cx="12" cy="5.5" r="1.8"/><circle cx="18" cy="5.5" r="1.8"/><path d="M6 9v6.5M12 9v6.5M18 9v6.5" stroke-width="3.2"/><circle cx="12" cy="20.5" r="2.2" fill="currentColor"/>';
-const LIC={but:_BALL,bad:_GOAL+'<circle cx="12" cy="15" r="2.4" fill="currentColor"/>',pd:'<circle cx="15" cy="12" r="6.5"/><path d="M15 8.6l2.4 1.8-.9 2.8h-3l-.9-2.8z"/><path d="M2 9h4M1 12.5h3.5M3 16h3"/>',
+const FBI={but:_BALL,bad:_GOAL+'<circle cx="12" cy="15" r="2.4" fill="currentColor"/>',pd:'<circle cx="15" cy="12" r="6.5"/><path d="M15 8.6l2.4 1.8-.9 2.8h-3l-.9-2.8z"/><path d="M2 9h4M1 12.5h3.5M3 16h3"/>',
  ar:'<path d="M6 14a3 3 0 013-3h7a3 3 0 013 3v4a3 3 0 01-3 3H9a3 3 0 01-3-3z" fill="currentColor" fill-opacity=".15"/><path d="M8 11V6.5M11 11V4.5M14 11V5M17 11V7M6 15l-2.6-2.4" stroke-width="2.6"/>',
  top:'<path d="M3 17V7l4.5 1.2c.9 2.2 2.2 3.3 4.7 3.9l5.6 1.4c2 .5 3.2 1.6 3.2 3.5V17z"/><path d="M6.5 17v2.6M11 17v2.6M15.5 17v2.6M20 17v2.6"/>',
  csc:_GOAL+'<path d="M16 14.5H9M9 14.5l2.2-2.2M9 14.5l2.2 2.2"/>',cou:_FLAG,cox:_FLAG,cfu:_WALL,cfx:_WALL,
  wh:'<circle cx="9" cy="14" r="5.5"/><circle cx="9" cy="14" r="1.4"/><path d="M13.6 11h7.4v3.6h-6.2M9 8.5V4"/>'};
-function lic(k,z){return `<svg width="${z}" height="${z}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="color:${LCL[k]||'#64748b'};flex:none">${LIC[k]||''}</svg>`}
+function lic(k,z){return `<svg width="${z}" height="${z}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="color:${LCL[k]||'#64748b'};flex:none">${FBI[k]||''}</svg>`}
 function directTab(m){const E=liveEv(m.id),us=E.filter(e=>e.k=='but').length,th=E.filter(e=>e.k=='bad'||e.k=='csc').length,live=isLive(m),cw=ME&&av(m.id,ME)=='y'&&m.date<=today()&&!m.fin,cnt=k=>E.filter(e=>e.k==k).length,cur=liveMin(m),curN=cur===''?-1:+cur,
  msg=m.fin?'Match enregistré : direct en lecture seule.':m.date>today()?'Le direct démarre le jour du match.':!ME?'Connecte-toi pour suivre le direct.':'Seuls les joueurs indiqués présents peuvent noter les actions.',
  txt=`🔴 LIVE ${TEAM} ${us}-${th} ${m.opp}\n`+E.slice().reverse().map(e=>`${e.min!=null?e.min+"' ":''}${LK[e.k][0]} ${LK[e.k][1]}${e.p?' '+nm(e.p):''}`).join('\n'),
