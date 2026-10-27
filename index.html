@@ -1068,7 +1068,7 @@ mpage=function(){const m=C.matches[MID];if(!m){T='cal';return mlist()}
  tb=[['i','Infos'],['p','Présences'],['c','Compo'],['s','Stats'],['v','Votes'],['d',(isLive(m)?'<span style="color:#e11d2e">●</span> ':'')+'Direct']],tab=tb.some(x=>x[0]==MT)?MT:'i',
  dt=D(m).toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'}),dtc=dt.charAt(0).toUpperCase()+dt.slice(1),
  addr=(aw&&t&&t.addr)||m.place||'',gps=(aw&&t&&t.gps)||'',
- ban=adm&&!m.status?(m.fin?`<div class="c" style="border-left:5px solid #22c55e;display:flex;align-items:center;gap:10px"><b style="flex:1">✓ Match enregistré</b></div>`:(pl||m.date<=today())?`<div class="c" style="border-left:5px solid #f59e0b;background:rgba(245,158,11,.1)"><b>⚠️ Match non enregistré</b><div class="mu" style="margin:4px 0 10px">À renseigner dans l'onglet Stats › Score.</div></div>`:''):'',
+ ban=adm&&!m.status?(m.fin?'':(pl||m.date<=today())?`<div class="c" style="border-left:5px solid #f59e0b;background:rgba(245,158,11,.1)"><b>⚠️ Match non enregistré</b><div class="mu" style="margin:4px 0 10px">À renseigner dans l'onglet Stats › Score.</div></div>`:''):'',
  nmS='font-size:clamp(1.6rem,7vw,2.1rem);font-weight:500;line-height:1.15;overflow-wrap:anywhere',
  scv=v=>pl?`<b style="font-size:clamp(1.8rem,8vw,2.4rem);color:${rcol(m)};flex:none">${v}</b>`:'',
  line=(n,sc)=>`<div style="display:flex;align-items:center;justify-content:space-between;gap:12px"><div style="${nmS}">${n}</div>${sc}</div>`,
@@ -1078,14 +1078,14 @@ mpage=function(){const m=C.matches[MID];if(!m){T='cal';return mlist()}
  s=ME?av(m.id,ME):null,
  big=(k,l,c)=>{const on=s==k;return `<button onclick="${on?`presDlg('${m.id}','${k}')`:`vote('${m.id}','${k}')`}" style="flex:none;min-height:48px;padding:12px 26px;border-radius:12px;font-size:1.1rem;font-weight:500;border:2px solid ${on?c:'#4cbf7a'};background:${on?c:'transparent'};color:${on?'#fff':'#4cbf7a'}">${l}${on?' ✓':''}</button>`},
  pres=up&&ME&&!m.status&&EVS().pres&&m.date<=wkEnd()?`<div style="display:flex;gap:10px;margin:14px 0 4px">${s=='n'?'':big('y','Présent','#4cbf7a')}${s=='y'?'':big('n','Absent','#9ca3af')}</div>`:'',
- tabs=`<div style="display:flex;gap:2px;overflow-x:auto;border-bottom:1px solid var(--bd);margin:14px 0 0">${tb.map(([k,l])=>`<button onclick="MT='${k}';render()" style="flex:none;border:0;border-radius:0;box-shadow:none;min-height:0;background:none;padding:12px 12px;font-size:.82rem;font-weight:600;letter-spacing:.07em;text-transform:uppercase;border-bottom:3px solid ${tab==k?'var(--ac)':'transparent'};color:${tab==k?'var(--ac)':'var(--tx)'}">${l}</button>`).join('')}</div>`,
- sec=h=>`<div style="font-weight:700;font-size:1.05rem;padding:16px 4px 8px">${h}</div>`,
+ tabs=`<div style="display:flex;gap:0;border-bottom:1px solid var(--bd);margin:12px 0 0">${tb.map(([k,l])=>`<button onclick="MT='${k}';render()" style="flex:1 1 0;min-width:0;border:0;border-radius:0;box-shadow:none;min-height:0;background:none;padding:10px 1px;font-size:clamp(.55rem,2.6vw,.8rem);font-weight:600;letter-spacing:.01em;text-transform:uppercase;white-space:nowrap;text-align:center;border-bottom:3px solid ${tab==k?'var(--ac)':'transparent'};color:${tab==k?'var(--ac)':'var(--tx)'}">${l}</button>`).join('')}</div>`,
+ sec=h=>`<div style="font-weight:700;font-size:.9rem;padding:8px 4px 4px">${h}</div>`,
  pr=P().filter(p=>av(m.id,p.id)=='y').length,ab=P().filter(p=>av(m.id,p.id)=='n').length,wt=P().filter(p=>['m','w'].includes(av(m.id,p.id))).length,
- big2=(n,l)=>`<div style="flex:1;text-align:center"><div style="font-size:2.4rem;color:var(--mu);line-height:1.2">${n}</div><div style="color:var(--mu)">${l}</div></div>`,
+ big2=(n,l)=>`<div style="flex:1;text-align:center"><div style="font-size:1.5rem;color:var(--mu);line-height:1.2">${n}</div><div style="color:var(--mu);font-size:.8rem">${l}</div></div>`,
  href=up&&(gps||addr)?'https://www.google.com/maps/search/?api=1&query='+(gps?gps.replace(/\s/g,''):encodeURIComponent(addr)):'',
- infos=sec('Participants')+`<div class="c" style="display:flex;padding:18px 8px">${big2(pr,'Présents')}${big2(wt,'En attente')}${big2(ab,'Absents')}</div>`
-  +sec('Rendez-vous')+`<div class="c"><div style="font-size:1.9rem;color:var(--ac);font-weight:500">${m.rdv||'--:--'}</div>${m.rdvl?`<div class="mu">${esc(m.rdvl)}</div>`:''}</div>`
-  +sec('Match')+`<div class="c"><div style="display:flex;align-items:center;gap:10px">🏆 <span>${tg(m)}</span></div>${m.time?`<div style="font-size:1.3rem;margin-top:12px">Début à ${m.time}</div>`:''}${m.hend?`<div style="margin-top:6px">Fin à ${m.hend}</div>`:''}${addr?`<div style="margin-top:16px;color:var(--ac);overflow-wrap:anywhere">${esc(addr)}</div>`:''}${href?`<a href="${href}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:10px;margin-top:14px;color:var(--ac);text-decoration:none"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 22s7-6.2 7-12a7 7 0 10-14 0c0 5.8 7 12 7 12z"/><circle cx="12" cy="10" r="2.6"/></svg>Itinéraire</a>`:''}</div>`
+ infos=sec('Participants')+`<div class="c" style="display:flex;padding:8px 6px;margin:0 0 8px">${big2(pr,'Présents')}${big2(wt,'En attente')}${big2(ab,'Absents')}</div>`
+  +sec('Rendez-vous')+`<div class="c" style="padding:8px 14px;margin:0 0 8px"><div style="font-size:1.25rem;color:var(--ac);font-weight:600">${m.rdv||'--:--'}</div>${m.rdvl?`<div class="mu">${esc(m.rdvl)}</div>`:''}</div>`
+  +sec('Match')+`<div class="c" style="padding:8px 14px;margin:0 0 8px;font-size:.88rem"><div style="display:flex;align-items:center;gap:8px">🏆 <span>${tg(m)}</span></div>${m.time?`<div style="font-size:1rem;margin-top:6px">Début à ${m.time}</div>`:''}${m.hend?`<div style="margin-top:2px">Fin à ${m.hend}</div>`:''}${addr?`<div style="margin-top:8px;color:var(--ac);overflow-wrap:anywhere">${esc(addr)}</div>`:''}${href?`<a href="${href}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:8px;margin-top:8px;color:var(--ac);text-decoration:none"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 22s7-6.2 7-12a7 7 0 10-14 0c0 5.8 7 12 7 12z"/><circle cx="12" cy="10" r="2.6"/></svg>Itinéraire</a>`:''}</div>`
   ;
  return `<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin:4px 0 12px"><button onclick="T='cal';render()" style="border:0;background:none;box-shadow:none;font-size:1.6rem;line-height:1;padding:4px 10px 4px 0;min-height:0">‹</button><div style="flex:1;text-align:center"><b style="font-size:1.05rem">${dtc}</b>${m.time?`<div class="mu" style="font-size:.95rem;margin-top:2px">${m.time}</div>`:''}</div>${ad?`<button onclick="M='mact';MD={m:'${m.id}'};render()" style="border:0;background:none;box-shadow:none;font-size:1.4rem;min-height:0;padding:4px 0 4px 10px" aria-label="Options du match">⚙</button>`:'<span style="width:32px"></span>'}</div>${title}${m.status?`<div style="margin-top:10px">${badge(m.status)}</div>`:''}${pres}${ban}${tabs}`+(tab=='p'?presList(m):tab=='c'?compoH(m):tab=='s'?statsPage(m):tab=='v'?votesPage(m):tab=='d'?directTab(m):infosPlus(m,infos))};
 
@@ -1172,15 +1172,14 @@ function infosPlus(m,base){if(!played(m))return base;
  wx=(w&&w.code!=null)?`<div class="mu" style="font-size:.8rem;margin-top:6px">☁️ ${WXL[wxKind(w)]} · ${w.temp}°C · vent ${w.wind} km/h</div>`:'';
  if(m.date==today()&&!w)wxEnsure(m).then(()=>{if(T=='md'&&MT=='i'&&MID==m.id&&WX[m.id]&&WX[m.id].code!=null)render()});
  const line=(i,x)=>x?`<div style="font-size:.88rem;margin-top:6px">${i} ${x}</div>`:'',
- syn=`<div class="c" style="border-left:5px solid ${col}"><div class="mu" style="font-size:.75rem;letter-spacing:.04em;text-transform:uppercase">Résumé du match</div><div style="display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:10px;text-align:center;margin-top:6px"><b style="overflow-wrap:anywhere">${esc(nL)}</b><b style="font-size:1.6rem;white-space:nowrap">${sL} – ${sR}</b><b style="overflow-wrap:anywhere">${esc(nR)}</b></div>`
-  +(m.mt?`<div class="mu" style="font-size:.8rem;text-align:center;margin-top:2px">Mi-temps : ${esc(m.mt)}</div>`:'')
+ syn=`<div class="c" style="border-left:5px solid ${col}"><div class="mu" style="font-size:.75rem;letter-spacing:.04em;text-transform:uppercase">Résumé du match</div>`
   +line('⚽',bu?'<b>Buteurs</b> : '+bu:'')
   +line('👟',pd?'<b>Passeurs</b> : '+pd:'')
   +(m.cf?line('🥅','<b>CSC '+esc(TEAM)+'</b> : '+m.cf):'')+(m.ca?line('🥅','<b>CSC adverse</b> : '+m.ca):'')+wx+`</div>`,
  note=m.fin?_cd('Note du match',starsK(m,'match')):'',
  rows=['le terrain','les douches','le repas',...(solo(m)?[]:["l'esprit loisir"]),"l'homme du match",'la note des joueurs'],
  hint=m.fin?`<div class="c" style="display:flex;align-items:center;gap:12px"><span style="font-size:1.6rem">🗳️</span><div style="flex:1;min-width:0"><b>Votes</b><div class="mu" style="font-size:.8rem">Vote aussi pour ${rows.slice(0,-1).join(', ')} et ${rows[rows.length-1]} dans l’onglet Votes.</div></div><button class="p" onclick="MT='v';render()">Voter</button></div>`:'';
- return syn+base+note+hint}
+ return syn+base+note}
 </script>
 </body>
 </html>
