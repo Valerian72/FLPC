@@ -1653,5 +1653,75 @@ infosPlus=function(m,base,pt){if(!played(m)||!pt)return base;
 
 VERS.unshift(['3.67','Match terminé : sans bouton Enregistrer, résumé dans Infos, coche rapide en Présences',['Stats › Score du match : une fois le match terminé et le score validé, le bouton « Enregistrer » disparaît ; les corrections se sauvegardent toutes seules.','Stats du match : nouvelles icônes, ballon ⚽ pour le buteur et chaussure 👟 pour le passeur.','Présences › Non retenus : une coche ✓ à droite de chaque joueur le passe en Présent d’un seul appui, sans ouvrir la petite fenêtre (les trois points restent pour En attente, Absent et Non retenu) ; la liste reste ouverte pendant la validation.','Infos d’un match terminé : plus de tuiles Rendez-vous, Coup d’envoi, Terrain, Lieu, Météo ni Participants ; un simple résumé avec le score final (résultat et mi-temps), suivi de la note du match.']]);
 </script>
+<script>
+/* ===== v3.68 : Présences, les 4 boutons de présence en ligne sur chaque joueur ===== */
+function qPres(mid,pid,k){setAv(mid,pid,k||null)}
+presList=function(m){const L=P(),st=p=>{const a=av(m.id,p.id);return a=='w'?'m':(a=='y'||a=='n'||a=='m')?a:''},
+ y=L.filter(p=>st(p)=='y'),q=L.filter(p=>st(p)=='m'),n=L.filter(p=>st(p)=='n'),r=L.filter(p=>st(p)==''),co=lvl()>=1.5,
+ B=[['y','Présent','#4cbf7a','✓'],['m','En attente','#f5c518','?'],['n','Absent','#ef4444','✕'],['','Non retenu','#8a929a','⊘']],
+ btns=p=>{const cur=st(p);return `<span style="display:flex;align-items:center;gap:6px;flex:none;margin-left:auto">${B.map(([k,l,c,g])=>{const on=cur==k;return `<button onclick="${on?'':`qPres('${m.id}','${p.id}','${k}')`}" aria-label="${l}" aria-pressed="${on}" title="${l}" style="width:32px;height:32px;min-height:0;padding:0;border-radius:50%;border:2px solid ${on?c:'var(--bd)'};background:${on?c:'transparent'};color:${on?'#fff':c};opacity:${on?1:.75};font-size:1rem;font-weight:700;line-height:1;box-shadow:none;display:flex;align-items:center;justify-content:center">${g}</button>`}).join('')}</span>`},
+ row=p=>{const sub=pstr(p)||'';
+  return `<div class="pl" style="align-items:center;flex-wrap:wrap;gap:6px 8px"><span style="display:flex;align-items:center;gap:10px;min-width:0;flex:1 1 120px">${pav(p,32)}<span style="min-width:0"><div>${esc(p.name)}</div>${sub?`<div class="mu" style="font-size:.75rem">${esc(sub)}</div>`:''}</span></span>${co?btns(p):''}</div>`},
+ ln=(t,l,c)=>`<div class="c"><b style="color:${c};font-size:.9rem">${t} (${l.length})</b>${l.map(row).join('')||'<div class="mu">Personne</div>'}</div>`,
+ nr=`<details class="c" style="padding:8px 14px" ${OP.nr?'open':''} ontoggle="OP.nr=this.open"><summary style="cursor:pointer;color:#8a929a;font-size:.8rem;font-weight:700">Non retenus (${r.length})</summary>${r.map(row).join('')||'<div class="mu">Personne</div>'}</details>`;
+ return ln('Présents',y,'#16a34a')+ln('En attente',q,'#d97706')+ln('Absents',n,'#6b7280')+nr};
+VERS.unshift(['3.68','Présences : les 4 boutons en ligne sur chaque joueur',['Onglet Présences (coachs et admins) : chaque joueur affiche à droite les quatre boutons ronds Présent ✓, En attente ?, Absent ✕ et Non retenu ⊘, avec les mêmes couleurs que la fenêtre de choix.','Un appui change la présence tout de suite, sans fenêtre ; le statut actuel est en couleur pleine.','Valable dans toutes les listes (Présents, En attente, Absents, Non retenus) ; la liste Non retenus reste ouverte pendant la validation.','Les trois points et la coche seule sont remplacés par ces boutons.']]);
+</script>
+<script>
+/* ===== v3.69 : boutons de statut seulement dans Non retenus, les autres listes gardent la fenêtre ===== */
+presList=function(m){const L=P(),st=p=>{const a=av(m.id,p.id);return a=='w'?'m':(a=='y'||a=='n'||a=='m')?a:''},
+ y=L.filter(p=>st(p)=='y'),q=L.filter(p=>st(p)=='m'),n=L.filter(p=>st(p)=='n'),r=L.filter(p=>st(p)==''),co=lvl()>=1.5,
+ B=[['y','Présent','#4cbf7a','✓'],['m','En attente','#f5c518','?'],['n','Absent','#ef4444','✕'],['','Non retenu','#8a929a','⊘']],
+ btns=p=>{const cur=st(p);return `<span style="display:flex;align-items:center;gap:6px;flex:none;margin-left:auto">${B.map(([k,l,c,g])=>{const on=cur==k;return `<button onclick="${on?'':`qPres('${m.id}','${p.id}','${k}')`}" aria-label="${l}" aria-pressed="${on}" title="${l}" style="width:32px;height:32px;min-height:0;padding:0;border-radius:50%;border:2px solid ${on?c:'var(--bd)'};background:${on?c:'transparent'};color:${on?'#fff':c};opacity:${on?1:.75};font-size:1rem;font-weight:700;line-height:1;box-shadow:none;display:flex;align-items:center;justify-content:center">${g}</button>`}).join('')}</span>`},
+ dots=p=>`<button onclick="psSheet('${m.id}','${p.id}')" aria-label="Fiche du joueur" style="flex:none;border:0;background:none;box-shadow:none;min-height:0;padding:6px 8px;line-height:0"><svg width="6" height="22" viewBox="0 0 6 22" fill="currentColor"><circle cx="3" cy="3" r="2.4"/><circle cx="3" cy="11" r="2.4"/><circle cx="3" cy="19" r="2.4"/></svg></button>`,
+ row=quick=>p=>{const sub=pstr(p)||'';
+  return `<div class="pl" style="align-items:center;flex-wrap:wrap;gap:6px 8px"><span style="display:flex;align-items:center;gap:10px;min-width:0;flex:1 1 120px">${pav(p,32)}<span style="min-width:0"><div>${esc(p.name)}</div>${sub?`<div class="mu" style="font-size:.75rem">${esc(sub)}</div>`:''}</span></span>${co?(quick?btns(p):dots(p)):''}</div>`},
+ ln=(t,l,c)=>`<div class="c"><b style="color:${c};font-size:.9rem">${t} (${l.length})</b>${l.map(row(false)).join('')||'<div class="mu">Personne</div>'}</div>`,
+ nr=`<details class="c" style="padding:8px 14px" ${OP.nr?'open':''} ontoggle="OP.nr=this.open"><summary style="cursor:pointer;color:#8a929a;font-size:.8rem;font-weight:700">Non retenus (${r.length})</summary>${r.map(row(false)).join('')||'<div class="mu">Personne</div>'}</details>`;
+ return ln('Présents',y,'#16a34a')+ln('En attente',q,'#d97706')+ln('Absents',n,'#6b7280')+nr};
+VERS.unshift(['3.69','Présences : boutons de statut seulement dans Non retenus',['Les quatre boutons ronds (Présent, En attente, Absent, Non retenu) n’apparaissent plus que sur les joueurs de la liste Non retenus, pour les trier plus vite.','Présents, En attente et Absents reviennent comme avant : trois points à droite du joueur, qui ouvrent la fenêtre « Sélectionner un type de présence ».']]);
+</script>
+<script>
+/* ===== v3.70 : légende des icônes de statut dans Non retenus ===== */
+const _pl370=presList;
+presList=function(m){let h=_pl370(m);
+ return h};
+VERS.unshift(['3.70','Présences : légende des icônes de statut',['Dans la liste Non retenus (coachs et admins), une ligne de légende sous le titre explique les icônes : ✓ Présent, ? En attente, ✕ Absent, ⊘ Non retenu.']]);
+</script>
+<script>
+/* ===== v3.71 : « Gérer les présences » (cases à cocher + type de présence appliqué à tous les cochés) ===== */
+var PGM=null,PGS={};
+function pgToggle(id){PGM=PGM==id?null:id;PGS={};render()}
+function pgCnt(){const e=document.getElementById('pgn'),n=Object.keys(PGS).length;if(e)e.textContent=n?n+' joueur'+(n>1?'s':'')+' sélectionné'+(n>1?'s':''):'Aucun joueur sélectionné'}
+function pgTog(el){const id=el.getAttribute('data-id');if(el.checked)PGS[id]=1;else delete PGS[id];
+ const sec=el.getAttribute('data-s'),all=document.querySelector('input[data-all="'+sec+'"]');
+ if(all){const L=[...document.querySelectorAll('input[data-s="'+sec+'"]')];all.checked=L.length>0&&L.every(x=>x.checked)}pgCnt()}
+function pgAll(el){const sec=el.getAttribute('data-all');document.querySelectorAll('input[data-s="'+sec+'"]').forEach(x=>{x.checked=el.checked;const id=x.getAttribute('data-id');if(el.checked)PGS[id]=1;else delete PGS[id]});pgCnt()}
+function pgPick(mid){const ids=Object.keys(PGS);if(!ids.length)return toast('Coche au moins un joueur');
+ const old=document.getElementById('pgsheet');if(old)old.remove();
+ const ic=(c,g)=>`<span style="width:36px;height:36px;border-radius:50%;background:${c};color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:1.1rem;flex:none">${g}</span>`,
+ O=[['y','Présent',ic('#4cbf7a','✓')],['m','En attente',ic('#f5c518','?')],['n','Absent',ic('#ef4444','✕')],['','Non retenu',ic('#8a929a','⊘')]],
+ o=document.createElement('div');o.id='pgsheet';o.style.cssText='position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;padding:16px';
+ o.onclick=e=>{if(e.target===o)o.remove()};
+ o.innerHTML=`<div style="background:var(--card);color:var(--tx);width:100%;max-width:400px;border-radius:26px;padding:24px 22px;box-shadow:0 10px 40px rgba(0,0,0,.35)"><div style="font-weight:700;font-size:1.05rem">Sélectionner un type de présence</div><div class="mu" style="font-size:.85rem;margin:2px 0 10px">${ids.length} joueur${ids.length>1?'s':''} sélectionné${ids.length>1?'s':''}</div>${O.map(([k,l,i])=>`<div data-k="${k}" style="display:flex;align-items:center;gap:14px;padding:12px 0;cursor:pointer">${i}<span style="flex:1;font-size:1.05rem">${l}</span><span style="width:34px;height:34px;border-radius:50%;border:2px solid var(--bd);display:inline-flex"></span></div>`).join('')}<button onclick="document.getElementById('pgsheet').remove()" style="width:100%;margin-top:8px;min-height:44px">Annuler</button></div>`;
+ document.body.appendChild(o);
+ o.querySelectorAll('[data-k]').forEach(el=>el.onclick=()=>{const k=el.getAttribute('data-k'),L=Object.keys(PGS);o.remove();PGS={};L.forEach(id=>setAv(mid,id,k||null));toast(L.length+' présence'+(L.length>1?'s':'')+' mise'+(L.length>1?'s':'')+' à jour')})}
+const _pl371=presList;
+presList=function(m){const base=_pl371(m);if(lvl()<1.5)return base;
+ const open=PGM==m.id,
+ head=`<div onclick="pgToggle('${m.id}')" class="c" style="display:flex;align-items:center;gap:10px;padding:12px 14px;cursor:pointer"><b style="flex:1">Gérer les présences</b><span class="mu" style="font-size:1.3rem;line-height:1;display:inline-block;transform:rotate(${open?90:0}deg)">›</span></div>`;
+ if(!open)return head+base;
+ const L=P(),st=p=>{const a=av(m.id,p.id);return a=='w'?'m':(a=='y'||a=='n'||a=='m')?a:''},
+ S=[['y','Présents','#16a34a'],['m','En attente','#d97706'],['','Non retenus','#8a929a'],['n','Absents','#6b7280']],
+ sec=([k,t,c])=>{const l=L.filter(p=>st(p)==k),key=k||'x';
+  return `<div class="c"><div style="display:flex;align-items:center;justify-content:space-between;gap:10px;background:rgba(128,128,128,.14);border-radius:10px;padding:8px 10px;margin-bottom:8px"><b style="color:${c};font-size:.9rem">${t} (${l.length})</b><label style="display:flex;align-items:center;gap:8px;cursor:pointer"><span class="mu" style="font-size:.8rem">Tous</span><input type="checkbox" data-all="${key}" onchange="pgAll(this)" aria-label="Tous" style="width:22px;height:22px;min-height:0;padding:0;margin:0;flex:none;accent-color:#4cbf7a" ${l.length?'':'disabled'}></label></div>${l.map(p=>{const sub=pstr(p)||'';return `<label class="pl" style="align-items:center;gap:10px;cursor:pointer;justify-content:space-between"><span style="display:flex;align-items:center;gap:10px;min-width:0;flex:1">${pav(p,32)}<span style="min-width:0"><div>${esc(p.name)}</div>${sub?`<div class="mu" style="font-size:.75rem">${esc(sub)}</div>`:''}</span></span><input type="checkbox" data-id="${p.id}" data-s="${key}" onchange="pgTog(this)" ${PGS[p.id]?'checked':''} style="width:22px;height:22px;min-height:0;padding:0;margin:0;flex:none;accent-color:#4cbf7a"></label>`}).join('')||'<div class="mu">Personne</div>'}</div>`},
+ n=Object.keys(PGS).length,
+ bar=`<div class="c" style="position:sticky;bottom:8px;z-index:5;display:flex;align-items:center;gap:12px;box-shadow:0 4px 18px rgba(0,0,0,.18)"><div style="flex:none"><b>Présence</b><div id="pgn" class="mu" style="font-size:.72rem">${n?n+' joueur'+(n>1?'s':'')+' sélectionné'+(n>1?'s':''):'Aucun joueur sélectionné'}</div></div><button onclick="pgPick('${m.id}')" style="flex:1;min-width:0;min-height:44px;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 14px;border-radius:12px;border:1.5px solid var(--bd);background:transparent;box-shadow:none;font-size:.95rem"><span>Sélectionner un type</span><span class="mu">▾</span></button></div>`;
+ return head+S.map(sec).join('')+bar};
+VERS.unshift(['3.71','Présences : menu « Gérer les présences »',['Onglet Présences (coachs et admins) : un menu « Gérer les présences » au-dessus de la liste des présents ; un appui l’ouvre ou le referme.','Ouvert, il affiche Présents, En attente, Non retenus et Absents avec une case à cocher devant chaque joueur et une case « tout cocher » par liste.','Tout en bas, une ligne « Présence » avec un menu « Sélectionner un type » : il ouvre la mini-fenêtre « Sélectionner un type de présence » (Présent, En attente, Absent, Non retenu) et applique le choix à tous les joueurs cochés.','Le compteur indique combien de joueurs sont cochés ; la ligne reste visible en bas de l’écran.']]);
+VERS.unshift(['3.72','Gérer les présences : cases à cocher à droite',['Dans « Gérer les présences », la case à cocher est maintenant à droite de chaque joueur (photo et nom à gauche).','La case « tout cocher » de chaque liste est aussi à droite, en face du titre.']]);
+VERS.unshift(['3.73','Gérer les présences : titres grisés, « Tous »',['Dans « Gérer les présences », la ligne de titre de chaque liste (Présents, En attente, Non retenus, Absents) est légèrement grisée.','« Tous » est indiqué devant la case de la ligne de titre ; seule cette case coche toute la liste (toucher le titre ne coche plus rien).','Un léger espace sépare la ligne de titre du premier joueur.']]);
+VERS.unshift(['3.74','Non retenus : plus de changement direct, légende retirée',['Liste Non retenus : les quatre boutons de statut sont retirés ; le joueur se change comme dans les autres listes, par les trois points qui ouvrent la fenêtre, ou par « Gérer les présences ».','La légende des icônes de statut est supprimée.']]);
+</script>
 </body>
 </html>
