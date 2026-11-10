@@ -1714,7 +1714,7 @@ presList=function(m){const base=_pl371(m);if(lvl()<1.5)return base;
  const L=P(),st=p=>{const a=av(m.id,p.id);return a=='w'?'m':(a=='y'||a=='n'||a=='m')?a:''},
  S=[['y','Présents','#16a34a'],['m','En attente','#d97706'],['','Non retenus','#8a929a'],['n','Absents','#6b7280']],
  sec=([k,t,c])=>{const l=L.filter(p=>st(p)==k),key=k||'x';
-  return `<div class="c"><div style="display:flex;align-items:center;justify-content:space-between;gap:10px;background:rgba(128,128,128,.14);border-radius:10px;padding:8px 10px;margin-bottom:8px"><b style="color:${c};font-size:.9rem">${t} (${l.length})</b><label style="display:flex;align-items:center;gap:8px;cursor:pointer"><span class="mu" style="font-size:.8rem">Tous</span><input type="checkbox" data-all="${key}" onchange="pgAll(this)" aria-label="Tous" style="width:22px;height:22px;min-height:0;padding:0;margin:0;flex:none;accent-color:#4cbf7a" ${l.length?'':'disabled'}></label></div>${l.map(p=>{const sub=pstr(p)||'';return `<label class="pl" style="align-items:center;gap:10px;cursor:pointer;justify-content:space-between"><span style="display:flex;align-items:center;gap:10px;min-width:0;flex:1">${pav(p,32)}<span style="min-width:0"><div>${esc(p.name)}</div>${sub?`<div class="mu" style="font-size:.75rem">${esc(sub)}</div>`:''}</span></span><input type="checkbox" data-id="${p.id}" data-s="${key}" onchange="pgTog(this)" ${PGS[p.id]?'checked':''} style="width:22px;height:22px;min-height:0;padding:0;margin:0;flex:none;accent-color:#4cbf7a"></label>`}).join('')||'<div class="mu">Personne</div>'}</div>`},
+  return `<div class="c"><div style="display:flex;align-items:center;justify-content:space-between;gap:10px;background:rgba(128,128,128,.14);border-radius:10px;padding:8px 10px;margin-bottom:8px;box-sizing:border-box"><b style="color:${c};font-size:.9rem">${t} (${l.length})</b><label style="display:flex;align-items:center;gap:8px;cursor:pointer"><span class="mu" style="font-size:.8rem">Tous</span><input type="checkbox" data-all="${key}" onchange="pgAll(this)" aria-label="Tous" style="width:22px;height:22px;min-height:0;padding:0;margin:0;flex:none;accent-color:#4cbf7a" ${l.length?'':'disabled'}></label></div>${l.map(p=>{const sub=pstr(p)||'';return `<label class="pl" style="align-items:center;gap:10px;cursor:pointer;justify-content:space-between;padding-left:10px;padding-right:10px;box-sizing:border-box"><span style="display:flex;align-items:center;gap:10px;min-width:0;flex:1">${pav(p,32)}<span style="min-width:0"><div>${esc(p.name)}</div>${sub?`<div class="mu" style="font-size:.75rem">${esc(sub)}</div>`:''}</span></span><input type="checkbox" data-id="${p.id}" data-s="${key}" onchange="pgTog(this)" ${PGS[p.id]?'checked':''} style="width:22px;height:22px;min-height:0;padding:0;margin:0;flex:none;accent-color:#4cbf7a"></label>`}).join('')||'<div class="mu">Personne</div>'}</div>`},
  n=Object.keys(PGS).length,
  bar=`<div class="c" style="position:sticky;bottom:8px;z-index:5;display:flex;align-items:center;gap:12px;box-shadow:0 4px 18px rgba(0,0,0,.18)"><div style="flex:none"><b>Présence</b><div id="pgn" class="mu" style="font-size:.72rem">${n?n+' joueur'+(n>1?'s':'')+' sélectionné'+(n>1?'s':''):'Aucun joueur sélectionné'}</div></div><button onclick="pgPick('${m.id}')" style="flex:1;min-width:0;min-height:44px;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 14px;border-radius:12px;border:1.5px solid var(--bd);background:transparent;box-shadow:none;font-size:.95rem"><span>Sélectionner un type</span><span class="mu">▾</span></button></div>`;
  return head+S.map(sec).join('')+bar};
@@ -1722,6 +1722,36 @@ VERS.unshift(['3.71','Présences : menu « Gérer les présences »',['Onglet Pr
 VERS.unshift(['3.72','Gérer les présences : cases à cocher à droite',['Dans « Gérer les présences », la case à cocher est maintenant à droite de chaque joueur (photo et nom à gauche).','La case « tout cocher » de chaque liste est aussi à droite, en face du titre.']]);
 VERS.unshift(['3.73','Gérer les présences : titres grisés, « Tous »',['Dans « Gérer les présences », la ligne de titre de chaque liste (Présents, En attente, Non retenus, Absents) est légèrement grisée.','« Tous » est indiqué devant la case de la ligne de titre ; seule cette case coche toute la liste (toucher le titre ne coche plus rien).','Un léger espace sépare la ligne de titre du premier joueur.']]);
 VERS.unshift(['3.74','Non retenus : plus de changement direct, légende retirée',['Liste Non retenus : les quatre boutons de statut sont retirés ; le joueur se change comme dans les autres listes, par les trois points qui ouvrent la fenêtre, ou par « Gérer les présences ».','La légende des icônes de statut est supprimée.']]);
+VERS.unshift(['3.75','Gérer les présences : cases alignées',['Les cases à cocher des joueurs et celle « Tous » des titres sont sur la même ligne verticale, avec le même retrait à droite ; photos et titres sont alignés à gauche.']]);
+</script>
+<script>
+/* ===== v3.76 : « Gérer les présences » en pleine page (comme Direct) ===== */
+var _mp376=mpage;
+mpage=function(){const m=C.matches[MID];
+ if(m&&MT=='p'&&PGM&&PGM==m.id&&lvl()>=1.5){
+  const body=presList(m).replace(/^<div onclick="pgToggle\([\s\S]*?<\/span><\/div>/,''),
+  head=`<div style="position:sticky;top:env(safe-area-inset-top,0px);z-index:8;background:var(--bg);padding:4px 0 6px"><div class="c" style="margin:0;padding:8px 12px"><div style="display:flex;align-items:center;gap:8px"><button onclick="pgToggle('${m.id}');scrollTo(0,0)" aria-label="Retour" style="border:0;background:none;box-shadow:none;font-size:1.8rem;line-height:1;min-height:40px;min-width:40px;padding:0">‹</button><div style="flex:1;text-align:center;min-width:0"><b>Gérer les présences</b><div class="mu" style="font-size:.75rem;overflow-wrap:anywhere">${esc(TEAM)} – ${esc(m.opp)}</div></div><div style="min-width:40px"></div></div></div></div>`;
+  return head+body}
+ return _mp376()};
+var _r376=render;
+render=function(){if(PGM&&!(T=='md'&&MT=='p'&&MID==PGM)){PGM=null;PGS={}}
+ _r376();const nv=document.querySelector('nav');
+ if(nv&&PGM&&T=='md'&&MT=='p'&&MID==PGM&&C.matches[MID]&&!gated()&&lvl()>=1.5)nv.style.display='none'};
+VERS.unshift(['3.76','Gérer les présences en pleine page',['Un appui sur « Gérer les présences » ouvre uniquement cette fenêtre, sans l’en-tête du match ni les onglets au-dessus, comme pour Direct.','Une barre en haut avec la flèche ‹ de retour (qui revient à l’onglet Présences) et le titre ; le menu du bas de l’application est masqué pour laisser toute la place à la ligne « Présence ».','En quittant l’onglet ou le match, le mode se referme tout seul.']]);
+</script>
+<script>
+/* ===== v3.77 : Notes en pleine page (comme Direct) ===== */
+var _mp377=mpage;
+mpage=function(){const m=C.matches[MID];
+ if(m&&MT=='v'&&played(m)){
+  const us=+m.us||0,th=+m.them||0,
+  head=`<div style="position:sticky;top:env(safe-area-inset-top,0px);z-index:8;background:var(--bg);padding:4px 0 6px"><div class="c" style="margin:0;padding:8px 12px"><div style="display:flex;align-items:center;gap:8px"><button onclick="MT='i';render();scrollTo(0,0)" aria-label="Retour" style="border:0;background:none;box-shadow:none;font-size:1.8rem;line-height:1;min-height:40px;min-width:40px;padding:0">‹</button><div style="flex:1;text-align:center;min-width:0"><b>Notes</b><div class="mu" style="font-size:.75rem;overflow-wrap:anywhere">${esc(TEAM)} ${us} – ${th} ${esc(m.opp)}</div></div><div style="min-width:40px"></div></div></div></div>`;
+  return head+votesPage(m)}
+ return _mp377()};
+var _r377=render;
+render=function(){_r377();const nv=document.querySelector('nav');
+ if(nv&&T=='md'&&MT=='v'&&MID&&C.matches[MID]&&played(C.matches[MID])&&!gated())nv.style.display='none'};
+VERS.unshift(['3.77','Notes en pleine page',['Un appui sur l’onglet Notes ouvre uniquement la page des notes, sans l’en-tête du match ni les onglets au-dessus, comme pour Direct.','Une barre en haut avec la flèche ‹ de retour (vers Infos), le titre « Notes » et le score du match ; le menu du bas est masqué pour laisser toute la place.','Le raccourci vers « Note des joueurs » continue de fonctionner.']]);
 </script>
 </body>
 </html>
