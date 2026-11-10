@@ -1591,8 +1591,8 @@ statsBlock=function(m){if(!played(m))return _sbOld(m);
  T=t=>`<div class="mu" style="font-size:.72rem;text-transform:uppercase;margin-top:14px">${t}</div>`,
  dash='<span class="mu" style="font-size:.85rem">sans passeur</span>',
  us=m.gl.map((g,i)=>g.p=='CSC'
-  ?`<div style="${G}">${N(i)}<span style="${W}">${lic('but',18)}<b>CSC adverse</b></span><span class="mu" style="font-size:.85rem">contre son camp</span></div>`
-  :`<div style="${G}">${N(i)}<span style="${W}">${lic('but',18)}<b>${g.p?esc(nm(g.p)):'Buteur non renseigné'}</b></span>${g.a?`<span style="${W}">${lic('pd',18)}<span>${esc(nm(g.a))}</span></span>`:dash}</div>`).join(''),
+  ?`<div style="${G}">${N(i)}<span style="${W}">${IC_BUT}<b>CSC adverse</b></span><span class="mu" style="font-size:.85rem">contre son camp</span></div>`
+  :`<div style="${G}">${N(i)}<span style="${W}">${IC_BUT}<b>${g.p?esc(nm(g.p)):'Buteur non renseigné'}</b></span>${g.a?`<span style="${W}">${IC_PAS}<span>${esc(nm(g.a))}</span></span>`:dash}</div>`).join(''),
  them=(m.ga||[]).map((v,j)=>`<div style="${G}">${N(j)}<span style="${W}">${lic(v?'csc':'bad',18)}<b>${v?'CSC de '+esc(TEAM):'But '+esc(m.opp)}</b></span><span></span></div>`).join('');
  return `<div class="c"><b>Stats du match</b>${head}${mtl}${us?T('Buts de '+esc(TEAM))+us:''}${them?T('Buts de '+esc(m.opp))+them:''}${!us&&!them?'<div class="mu" style="text-align:center;margin-top:8px">Aucun but.</div>':''}</div>`};
 </script>
@@ -1609,5 +1609,49 @@ statsPage=function(m){const ed=can('stats'),aw=hm(m),pd=played(m),
  if(pd&&nEv)h+=fold('fs2','Résumé du match',nEv+' action'+(nEv>1?'s':''),liveStory(m).replace('<b>Résumé du match</b>',''),false);
  if(pd)h+=fold('fs3','Stats du match',((+m.us||0)+(+m.them||0))+' but'+(((+m.us||0)+(+m.them||0))>1?'s':''),statsBlock(m).replace('<b>Stats du match</b>',''),false);
  return h||`<div class="c mu" style="text-align:center">Aucune stat pour le moment.</div>`};
-</script></body>
+</script><script>
+/* ===== v3.67 : match terminé = plus de bouton Enregistrer, icônes buteur/passeur, coche rapide en Non retenus, Infos = score final ===== */
+const IC_BUT='<span aria-label="Buteur" style="font-size:18px;line-height:1;flex:none">⚽</span>',
+ IC_PAS='<span aria-label="Passeur" style="font-size:18px;line-height:1;flex:none">👟</span>';
+
+/* Saisie du score : un match terminé s’enregistre tout seul (plus de bouton Enregistrer) */
+sdSave=function(silent){const S=SD;if(!S)return;const m=C.matches[S.id],st={};
+ Object.entries(m.st||{}).forEach(([p,o])=>{st[p]={...o,b:0,d:0}});
+ let ca=0;
+ S.gl.forEach(g=>{if(g.p=='CSC'){ca++;return}
+  if(g.p){const o=st[g.p]=st[g.p]||{};o.pl=1;o.b=(o.b||0)+1}
+  if(g.a){const o=st[g.a]=st[g.a]||{};o.pl=1;o.d=(o.d||0)+1}});
+ P().forEach(p=>{if(av(m.id,p.id)=='y')st[p.id]={...(st[p.id]||{}),pl:1}});
+ const cf=S.ga.reduce((a,v)=>a+(v?1:0),0),n={...m,us:S.us,them:S.them,ca,cf,mt:S.mt||'',st,fin:true,gl:S.gl,ga:S.ga};delete n.draft;
+ clearTimeout(sdT);
+ if(silent===true){put('matches',S.id,n);return}
+ SD=null;put('matches',S.id,n);toast('Match enregistré')};
+sdTouch=function(){const S=SD;render();const m=S&&C.matches[S.id];if(!m)return;clearTimeout(sdT);
+ if(m.fin){sdT=setTimeout(()=>{if(SD&&SD.id==S.id)sdSave(true)},800);return}
+ sdT=setTimeout(()=>{const m2=C.matches[S.id];if(m2&&!m2.fin&&SD&&SD.id==S.id)put('matches',S.id,{...m2,draft:{us:S.us,them:S.them,gl:S.gl,ga:S.ga,mt:S.mt}})},800)};
+const _sdCard367=sdCard;
+sdCard=function(m){let h=_sdCard367(m);
+ if(m.fin){h=h.replace(/<button class="p"[^>]*onclick="sdSave\(\)">Enregistrer<\/button>/,'')
+  .replace(/<\/div>$/,'<div class="mu" style="font-size:.75rem;text-align:center;margin-top:10px">Score validé · les modifications s’enregistrent automatiquement.</div></div>')}
+ return h};
+
+/* Présences : coche à droite des non retenus = Présent en un seul appui (sans fenêtre) */
+function qPres(mid,pid){setAv(mid,pid,'y')}
+presList=function(m){const L=P(),y=L.filter(p=>av(m.id,p.id)=='y'),n=L.filter(p=>av(m.id,p.id)=='n'),q=L.filter(p=>['m','w'].includes(av(m.id,p.id))),r=L.filter(p=>!['y','n','m','w'].includes(av(m.id,p.id))),co=lvl()>=1.5,
+ row=(p,quick)=>{const sub=pstr(p)||'';
+  return `<div class="pl" style="align-items:center"><span style="display:flex;align-items:center;gap:10px;min-width:0">${pav(p,32)}<span style="min-width:0"><div>${esc(p.name)}</div>${sub?`<div class="mu" style="font-size:.75rem">${esc(sub)}</div>`:''}</span></span>${co?`<span style="display:flex;align-items:center;gap:4px;flex:none">${quick?`<button onclick="qPres('${m.id}','${p.id}')" aria-label="Valider ${esc(p.name)} : présent" style="width:36px;height:36px;min-height:0;padding:0;border-radius:50%;border:2px solid #4cbf7a;background:transparent;color:#4cbf7a;font-size:1.15rem;font-weight:700;line-height:1;box-shadow:none;display:flex;align-items:center;justify-content:center">✓</button>`:''}<button onclick="psSheet('${m.id}','${p.id}')" aria-label="Fiche du joueur" style="flex:none;border:0;background:none;box-shadow:none;min-height:0;padding:6px 8px;line-height:0"><svg width="6" height="22" viewBox="0 0 6 22" fill="currentColor"><circle cx="3" cy="3" r="2.4"/><circle cx="3" cy="11" r="2.4"/><circle cx="3" cy="19" r="2.4"/></svg></button></span>`:''}</div>`},
+ ln=(t,l,c)=>`<div class="c"><b style="color:${c};font-size:.9rem">${t} (${l.length})</b>${l.map(p=>row(p,false)).join('')||'<div class="mu">Personne</div>'}</div>`,
+ nr=`<details class="c" style="padding:8px 14px" ${OP.nr?'open':''} ontoggle="OP.nr=this.open"><summary style="cursor:pointer;color:#8a929a;font-size:.8rem;font-weight:700">Non retenus (${r.length})</summary>${r.map(p=>row(p,true)).join('')||'<div class="mu">Personne</div>'}</details>`;
+ return ln('Présents',y,'#16a34a')+ln('En attente',q,'#d97706')+ln('Absents',n,'#6b7280')+nr};
+
+/* Infos d’un match terminé : seulement un résumé avec le score final (+ note du match) */
+infosPlus=function(m,base,pt){if(!played(m)||!pt)return base;
+ const aw=hm(m),nL=aw?m.opp:TEAM,nR=aw?TEAM:m.opp,sL=aw?m.them:m.us,sR=aw?m.us:m.them,us=+m.us||0,th=+m.them||0,
+ res=us>th?['Victoire','#16a34a']:us<th?['Défaite','#dc2626']:['Match nul','#d97706'],
+ nm='flex:1;min-width:0;font-weight:600;overflow-wrap:anywhere';
+ return `<div class="c" style="text-align:center"><b>Score final</b><div style="display:flex;align-items:center;justify-content:center;gap:10px;margin:12px 0 4px"><span style="${nm};text-align:right">${esc(nL)}</span><b style="font-size:1.9rem;white-space:nowrap;color:${res[1]}">${sL} – ${sR}</b><span style="${nm};text-align:left">${esc(nR)}</span></div><div style="font-weight:700;font-size:.9rem;color:${res[1]}">${res[0]}</div>${m.mt?`<div class="mu" style="font-size:.8rem;margin-top:4px">Mi-temps : ${esc(m.mt)}</div>`:''}</div>`+noteCard(m)};
+
+VERS.unshift(['3.67','Match terminé : sans bouton Enregistrer, résumé dans Infos, coche rapide en Présences',['Stats › Score du match : une fois le match terminé et le score validé, le bouton « Enregistrer » disparaît ; les corrections se sauvegardent toutes seules.','Stats du match : nouvelles icônes, ballon ⚽ pour le buteur et chaussure 👟 pour le passeur.','Présences › Non retenus : une coche ✓ à droite de chaque joueur le passe en Présent d’un seul appui, sans ouvrir la petite fenêtre (les trois points restent pour En attente, Absent et Non retenu) ; la liste reste ouverte pendant la validation.','Infos d’un match terminé : plus de tuiles Rendez-vous, Coup d’envoi, Terrain, Lieu, Météo ni Participants ; un simple résumé avec le score final (résultat et mi-temps), suivi de la note du match.']]);
+</script>
+</body>
 </html>
