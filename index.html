@@ -1910,12 +1910,12 @@ VERS.unshift(['3.92','Accueil : image entière et ballon visible, en plus petit'
 <script>
 /* ===== v3.93 : réglage de l'image de fond de l'Accueil (taille, position, hauteur) depuis l'Admin ===== */
 const BADJ_DEF={z:72,x:50,y:0,h:75},BADJ_CUS={z:100,x:50,y:44,h:75};
-function heroBg(club,adjO,srcO){
+function heroBg(club,adjO,srcO,prev){
  const src=srcO!==undefined?srcO:(club.banner||''),a=adjO||club.bannerAdj||null,img=src||HERO_IMG,
- ratio=((a&&a.h)||75)/100,
- st=`position:relative;aspect-ratio:1/${ratio};max-height:${Math.round(ratio*520)}px;width:100%;border-radius:24px;overflow:hidden;color:#fff;background:#0d2417`;
+ ratio=((a&&a.h)||75)/100,fit=!!(a&&a.f),
+ st=`position:relative;aspect-ratio:1/${ratio};max-height:${Math.round(ratio*(fit?720:520))}px;width:100%;border-radius:${fit?0:24}px;overflow:hidden;color:#fff;background:#0d2417`+(fit&&!prev?`;width:calc(100% + max(12px,env(safe-area-inset-left,0px)) + max(12px,env(safe-area-inset-right,0px)));margin-left:calc(-1*max(12px,env(safe-area-inset-left,0px)));margin-right:calc(-1*max(12px,env(safe-area-inset-right,0px)))`:'');
  if(src&&!a)return {s:st+` url('${img}') center 44%/cover no-repeat`,l:''};
- const z=a&&a.z!=null?+a.z:72,x=a&&a.x!=null?+a.x:50,y=a&&a.y!=null?+a.y:0,
+ const z=fit?100:(a&&a.z!=null?+a.z:72),x=fit?50:(a&&a.x!=null?+a.x:50),y=a&&a.y!=null?+a.y:0,
  L=(100-z)*x/100,R=L+z,mg=`linear-gradient(90deg,transparent ${L.toFixed(1)}%,#000 ${(L+7).toFixed(1)}%,#000 ${(R-7).toFixed(1)}%,transparent ${R.toFixed(1)}%)`,
  mask=z<100?`;-webkit-mask-image:${mg};mask-image:${mg}`:'';
  return {s:st,l:`<div style="position:absolute;inset:-12px;background:url('${img}') center bottom/cover no-repeat;filter:blur(12px) brightness(.9)"></div><div style="position:absolute;inset:0;background:url('${img}') ${x}% ${y}%/${z}% auto no-repeat${mask}"></div>`}}
@@ -1924,15 +1924,74 @@ function openBanner(){if(lvl()<2)return;const c=C.config.club||{};
 function pickBanner(i){const f=i.files[0];if(!f)return;const r=new FileReader();
  r.onload=()=>{const im=new Image();im.onload=()=>{const k=Math.min(1,800/im.width,1300/im.height),c=document.createElement('canvas');c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);c.getContext('2d').drawImage(im,0,0,c.width,c.height);TMP.banner=c.toDataURL('image/jpeg',.72);TMP.adj={...BADJ_CUS,h:TMP.adj.h};render()};im.src=r.result};r.readAsDataURL(f)}
 function saveBanner(){const b=TMP.banner||'',adj={...TMP.adj};M=null;const o={...(C.config.club||{}),id:'club',bannerAdj:adj};if(b)o.banner=b;else delete o.banner;put('config','club',o)}
-function bannerPrev(){const e=document.getElementById('bprev');if(!e)return;const H=heroBg({},TMP.adj,TMP.banner||'');
+function bannerPrev(){const e=document.getElementById('bprev');if(!e)return;const H=heroBg({},TMP.adj,TMP.banner||'',true);
  e.setAttribute('style',H.s);e.innerHTML=H.l+`<div style="position:absolute;left:0;right:0;bottom:0;height:74px;background:var(--card);border-radius:22px 22px 0 0;display:flex;align-items:center;justify-content:center;font-size:.72rem;opacity:.93" class="mu">Carte « Prochain match »</div>`}
 function bAdj(k,v){TMP.adj[k]=+v;const e=document.getElementById('bv_'+k);if(e)e.textContent=(k=='h'?(+v/100).toFixed(2):v+' %').replace('.',k=='h'?',':'.');bannerPrev()}
 function bReset(){TMP.adj=TMP.banner?{...BADJ_CUS,h:TMP.adj.h}:{...BADJ_DEF,h:TMP.adj.h};render()}
+function bFit(on){const A=TMP.adj;if(on){if(A.z<100)TMP.prevZ=A.z;A.f=1;A.z=100;A.x=50}else{A.f=0;A.z=TMP.prevZ||(TMP.banner?100:72)}render()}
 function bannerModal(){const A=TMP.adj,
- sl=(k,l,mn,mx)=>`<label style="display:block;margin-top:10px;font-size:.85rem"><span style="display:flex;justify-content:space-between"><b>${l}</b><span id="bv_${k}" class="mu">${k=='h'?(A[k]/100).toFixed(2).replace('.',','):A[k]+' %'}</span></span><input type="range" min="${mn}" max="${mx}" step="1" value="${A[k]}" oninput="bAdj('${k}',this.value)" style="width:100%"></label>`;
+ sl=(k,l,mn,mx)=>`<label style="display:block;margin-top:10px;font-size:.85rem${A.f&&(k=='z'||k=='x')?';opacity:.45':''}"><span style="display:flex;justify-content:space-between"><b>${l}</b><span id="bv_${k}" class="mu">${k=='h'?(A[k]/100).toFixed(2).replace('.',','):A[k]+' %'}</span></span><input type="range" ${A.f&&(k=='z'||k=='x')?'disabled':''} min="${mn}" max="${mx}" step="1" value="${A[k]}" oninput="bAdj('${k}',this.value)" style="width:100%"></label>`;
  setTimeout(bannerPrev,0);
- return Wm(`<b>Image de fond de l’accueil</b><div id="bprev" style="margin:12px 0"></div>${sl('z','Taille de l’image',40,160)}${sl('x','Position horizontale',0,100)}${sl('y','Position verticale',0,100)}${sl('h','Hauteur de la bannière',50,110)}<button style="width:100%;margin-top:12px" onclick="bReset()">Réinitialiser le réglage</button><div style="height:1px;background:var(--bd);margin:14px 0 10px"></div><input type="file" accept="image/*" onchange="pickBanner(this)"><div class="mu" style="font-size:.78rem;margin-top:6px">Choisis une autre photo si tu veux la changer.</div><button style="width:100%;margin-top:8px" onclick="TMP.banner='';TMP.adj={...BADJ_DEF,h:TMP.adj.h};render()">Image d’origine</button><button class="p" style="width:100%;margin-top:10px" onclick="saveBanner()">Enregistrer</button>`)}
+ return Wm(`<b>Image de fond de l’accueil</b><div id="bprev" style="margin:12px 0"></div><label style="display:flex;align-items:center;gap:10px;font-size:.9rem;cursor:pointer"><input type="checkbox" ${A.f?'checked':''} onchange="bFit(this.checked)" style="width:22px;height:22px;min-height:0;margin:0;flex:none"><span><b>Prendre la largeur de l’écran</b><br><span class="mu" style="font-size:.75rem">L’image va d’un bord à l’autre de l’écran, sans flou sur les côtés.</span></span></label>${sl('z','Taille de l’image',40,160)}${sl('x','Position horizontale',0,100)}${sl('y','Position verticale',0,100)}${sl('h','Hauteur de la bannière',50,110)}<button style="width:100%;margin-top:12px" onclick="bReset()">Réinitialiser le réglage</button><div style="height:1px;background:var(--bd);margin:14px 0 10px"></div><input type="file" accept="image/*" onchange="pickBanner(this)"><div class="mu" style="font-size:.78rem;margin-top:6px">Choisis une autre photo si tu veux la changer.</div><button style="width:100%;margin-top:8px" onclick="TMP.banner='';TMP.adj={...BADJ_DEF,h:TMP.adj.h};render()">Image d’origine</button><button class="p" style="width:100%;margin-top:10px" onclick="saveBanner()">Enregistrer</button>`)}
 VERS.unshift(['3.93','Admin : réglage de l’image de fond de l’accueil',['Admin › Club › « Image de fond de l’accueil » : quatre curseurs avec aperçu en direct : Taille de l’image, Position horizontale, Position verticale et Hauteur de la bannière.','L’aperçu montre aussi l’emplacement de la carte « Prochain match » pour voir ce qui sera caché.','« Réinitialiser le réglage » revient au cadrage par défaut ; « Image d’origine » remet la photo fournie ; le réglage est enregistré avec la photo et partagé avec tous les membres.']]);
+VERS.unshift(['3.94','Admin : mode « Prendre la largeur de l’écran »',['Dans le réglage de l’image de fond : une case « Prendre la largeur de l’écran » met l’image d’un bord à l’autre de l’écran (bannière sans coins arrondis ni marges, sans flou sur les côtés).','Les curseurs Taille et Position horizontale sont alors grisés ; Position verticale et Hauteur de la bannière restent réglables.','En décochant, la taille précédente est rétablie.']]);
+</script>
+<script>
+/* ===== v3.95 : modes d'affichage de l'image de fond, calés sur la hauteur de la bannière ===== */
+const BASP=new Map(),BDIS={perso:[],ecran:['z','x'],remplir:['z'],entiere:['z','y'],hauteur:['z','y']},
+ BDESC={perso:'Réglage libre : taille et position de l’image.',ecran:'L’image va d’un bord à l’autre de l’écran, sans flou sur les côtés.',remplir:'L’image remplit tout le cadre de la bannière ; les bords peuvent être coupés.',entiere:'Toute la photo est visible au-dessus de la carte, avec un flou autour. Elle s’adapte à la hauteur de la bannière.',hauteur:'L’image prend exactement la hauteur de la bannière ; sa largeur s’adapte.'};
+BASP.set(HERO_IMG,446/331);
+function bAsp(img){if(BASP.has(img))return BASP.get(img);BASP.set(img,1.35);const im=new Image();im.onload=()=>{BASP.set(img,im.width/im.height);if(typeof M!='undefined'&&M=='banner')bannerPrev();else render()};im.src=img;return 1.35}
+function heroBg(club,adjO,srcO,prev){
+ const src=srcO!==undefined?srcO:(club.banner||''),a=adjO||club.bannerAdj||null,img=src||HERO_IMG,
+ ratio=((a&&a.h)||75)/100,mode=a?(a.m||(a.f?'ecran':'perso')):'perso',fit=mode=='ecran',
+ st=`position:relative;aspect-ratio:1/${ratio};max-height:${Math.round(ratio*(fit?720:520))}px;width:100%;border-radius:${fit?0:24}px;overflow:hidden;color:#fff;background:#0d2417`+(fit&&!prev?`;width:calc(100% + max(12px,env(safe-area-inset-left,0px)) + max(12px,env(safe-area-inset-right,0px)));margin-left:calc(-1*max(12px,env(safe-area-inset-left,0px)));margin-right:calc(-1*max(12px,env(safe-area-inset-right,0px)))`:'');
+ if(src&&!a)return {s:st+` url('${img}') center 44%/cover no-repeat`,l:''};
+ const x=a&&a.x!=null?+a.x:50,y=a&&a.y!=null?+a.y:0,
+ blur=`<div style="position:absolute;inset:-12px;background:url('${img}') center bottom/cover no-repeat;filter:blur(12px) brightness(.9)"></div>`;
+ let top;
+ if(mode=='remplir')top=`<div style="position:absolute;inset:0;background:url('${img}') ${x}% ${y}%/cover no-repeat"></div>`;
+ else if(mode=='hauteur')top=`<div style="position:absolute;inset:0;background:url('${img}') ${x}% 50%/auto 100% no-repeat"></div>`;
+ else if(mode=='entiere'){const w=`min(100%,calc((${(ratio*100).toFixed(2)}% - 74px) * ${bAsp(img).toFixed(4)}))`;
+  top=`<div style="position:absolute;top:0;bottom:74px;width:${w};left:calc((100% - ${w}) * ${(x/100).toFixed(3)});background:url('${img}') center/100% 100% no-repeat;border-radius:14px;box-shadow:0 4px 16px rgba(0,0,0,.35)"></div>`}
+ else{const z=fit?100:(a&&a.z!=null?+a.z:72),xx=fit?50:x,L=(100-z)*xx/100,R=L+z,
+  mg=`linear-gradient(90deg,transparent ${L.toFixed(1)}%,#000 ${(L+7).toFixed(1)}%,#000 ${(R-7).toFixed(1)}%,transparent ${R.toFixed(1)}%)`,
+  mask=z<100?`;-webkit-mask-image:${mg};mask-image:${mg}`:'';
+  top=`<div style="position:absolute;inset:0;background:url('${img}') ${xx}% ${y}%/${z}% auto no-repeat${mask}"></div>`}
+ return {s:st,l:blur+top}}
+function bMode(m){const A=TMP.adj,cur=A.m||(A.f?'ecran':'perso');if(cur=='perso'&&A.z<100)TMP.prevZ=A.z;
+ A.m=m;A.f=m=='ecran'?1:0;if(m=='ecran'){A.z=100;A.x=50}if(m=='perso')A.z=TMP.prevZ||(TMP.banner?100:72);render()}
+function bannerModal(){const A=TMP.adj,mo=A.m||(A.f?'ecran':'perso'),DIS=k=>(BDIS[mo]||[]).includes(k),
+ sl=(k,l,mn,mx)=>`<label style="display:block;margin-top:10px;font-size:.85rem${DIS(k)?';opacity:.45':''}"><span style="display:flex;justify-content:space-between"><b>${l}</b><span id="bv_${k}" class="mu">${k=='h'?(A[k]/100).toFixed(2).replace('.',','):A[k]+' %'}</span></span><input type="range" ${DIS(k)?'disabled':''} min="${mn}" max="${mx}" step="1" value="${A[k]}" oninput="bAdj('${k}',this.value)" style="width:100%"></label>`,
+ chips=[['perso','Personnalisé'],['ecran','Largeur écran'],['remplir','Remplir'],['entiere','Image entière'],['hauteur','Hauteur bannière']].map(([k,l])=>`<button onclick="bMode('${k}')" style="min-height:36px;padding:6px 12px;border-radius:99px;border:1.5px solid ${mo==k?'#2f9e5e':'var(--bd)'};background:${mo==k?'#2f9e5e':'transparent'};color:${mo==k?'#fff':'var(--tx)'};font-size:.82rem;font-weight:600;box-shadow:none">${l}</button>`).join('');
+ setTimeout(bannerPrev,0);
+ return Wm(`<b>Image de fond de l’accueil</b><div id="bprev" style="margin:12px 0"></div><b style="font-size:.9rem">Mode d’affichage</b><div style="display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 4px">${chips}</div><div class="mu" style="font-size:.75rem">${BDESC[mo]}</div>${sl('z','Taille de l’image',40,160)}${sl('x','Position horizontale',0,100)}${sl('y','Position verticale',0,100)}${sl('h','Hauteur de la bannière',50,110)}<button style="width:100%;margin-top:12px" onclick="bReset()">Réinitialiser le réglage</button><div style="height:1px;background:var(--bd);margin:14px 0 10px"></div><input type="file" accept="image/*" onchange="pickBanner(this)"><div class="mu" style="font-size:.78rem;margin-top:6px">Choisis une autre photo si tu veux la changer.</div><button style="width:100%;margin-top:8px" onclick="TMP.banner='';TMP.adj={...BADJ_DEF,h:TMP.adj.h};render()">Image d’origine</button><button class="p" style="width:100%;margin-top:10px" onclick="saveBanner()">Enregistrer</button>`)}
+VERS.unshift(['3.95','Admin : modes d’affichage de l’image de fond',['Dans le réglage de l’image de fond, cinq modes au choix : Personnalisé (taille et position libres), Largeur écran (bord à bord), Remplir (l’image remplit tout le cadre), Image entière (toute la photo visible au-dessus de la carte, encadrée, avec un flou autour) et Hauteur bannière (l’image prend la hauteur du cadre).','Les modes Image entière, Hauteur bannière et Remplir sont calés sur la hauteur de la bannière : en changeant la hauteur, l’image se réajuste toute seule au cadre.','Les curseurs qui ne servent pas dans le mode choisi sont grisés ; l’aperçu en direct montre aussi l’emplacement de la carte « Prochain match ».']]);
+</script>
+<script>
+/* ===== v3.96 : mode « Élargir » (étirement horizontal de l'image) ===== */
+BDIS.etirer=['y'];
+BDESC.etirer='L’image est étirée en largeur (elle garde la hauteur de la bannière) : plus le curseur « Largeur de l’image » monte, plus elle s’élargit.';
+var _hb396=heroBg;
+heroBg=function(club,adjO,srcO,prev){
+ const a=adjO||club.bannerAdj||null;
+ if(!(a&&a.m=='etirer'))return _hb396(club,adjO,srcO,prev);
+ const src=srcO!==undefined?srcO:(club.banner||''),img=src||HERO_IMG,ratio=(a.h||75)/100,
+ z=a.z!=null?+a.z:130,x=a.x!=null?+a.x:50,L=(100-z)*x/100,R=L+z,
+ mg=`linear-gradient(90deg,transparent ${L.toFixed(1)}%,#000 ${(L+7).toFixed(1)}%,#000 ${(R-7).toFixed(1)}%,transparent ${R.toFixed(1)}%)`,
+ mask=z<100?`;-webkit-mask-image:${mg};mask-image:${mg}`:'';
+ return {s:`position:relative;aspect-ratio:1/${ratio};max-height:${Math.round(ratio*520)}px;width:100%;border-radius:24px;overflow:hidden;color:#fff;background:#0d2417`,
+  l:`<div style="position:absolute;inset:-12px;background:url('${img}') center bottom/cover no-repeat;filter:blur(12px) brightness(.9)"></div><div style="position:absolute;inset:0;background:url('${img}') ${x}% 50%/${z}% 100% no-repeat${mask}"></div>`}};
+bMode=function(m){const A=TMP.adj,cur=A.m||(A.f?'ecran':'perso');if(cur=='perso'&&A.z<100)TMP.prevZ=A.z;
+ A.m=m;A.f=m=='ecran'?1:0;if(m=='ecran'){A.z=100;A.x=50}
+ if(m=='etirer')A.z=130;
+ if(m=='perso')A.z=Math.min(160,TMP.prevZ||(TMP.banner?100:72));render()};
+bannerModal=function(){const A=TMP.adj,mo=A.m||(A.f?'ecran':'perso'),DIS=k=>(BDIS[mo]||[]).includes(k),
+ sl=(k,l,mn,mx)=>`<label style="display:block;margin-top:10px;font-size:.85rem${DIS(k)?';opacity:.45':''}"><span style="display:flex;justify-content:space-between"><b>${l}</b><span id="bv_${k}" class="mu">${k=='h'?(A[k]/100).toFixed(2).replace('.',','):A[k]+' %'}</span></span><input type="range" ${DIS(k)?'disabled':''} min="${mn}" max="${mx}" step="1" value="${A[k]}" oninput="bAdj('${k}',this.value)" style="width:100%"></label>`,
+ chips=[['perso','Personnalisé'],['ecran','Largeur écran'],['remplir','Remplir'],['entiere','Image entière'],['hauteur','Hauteur bannière'],['etirer','Élargir']].map(([k,l])=>`<button onclick="bMode('${k}')" style="min-height:36px;padding:6px 12px;border-radius:99px;border:1.5px solid ${mo==k?'#2f9e5e':'var(--bd)'};background:${mo==k?'#2f9e5e':'transparent'};color:${mo==k?'#fff':'var(--tx)'};font-size:.82rem;font-weight:600;box-shadow:none">${l}</button>`).join('');
+ setTimeout(bannerPrev,0);
+ return Wm(`<b>Image de fond de l’accueil</b><div id="bprev" style="margin:12px 0"></div><b style="font-size:.9rem">Mode d’affichage</b><div style="display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 4px">${chips}</div><div class="mu" style="font-size:.75rem">${BDESC[mo]}</div>${sl('z',mo=='etirer'?'Largeur de l’image':'Taille de l’image',40,mo=='etirer'?200:160)}${sl('x','Position horizontale',0,100)}${sl('y','Position verticale',0,100)}${sl('h','Hauteur de la bannière',50,110)}<button style="width:100%;margin-top:12px" onclick="bReset()">Réinitialiser le réglage</button><div style="height:1px;background:var(--bd);margin:14px 0 10px"></div><input type="file" accept="image/*" onchange="pickBanner(this)"><div class="mu" style="font-size:.78rem;margin-top:6px">Choisis une autre photo si tu veux la changer.</div><button style="width:100%;margin-top:8px" onclick="TMP.banner='';TMP.adj={...BADJ_DEF,h:TMP.adj.h};render()">Image d’origine</button><button class="p" style="width:100%;margin-top:10px" onclick="saveBanner()">Enregistrer</button>`)};
+VERS.unshift(['3.96','Admin : mode « Élargir » pour l’image de fond',['Nouveau mode « Élargir » dans le réglage de l’image de fond : l’image garde la hauteur de la bannière et s’étire en largeur grâce au curseur « Largeur de l’image » (de 40 à 200 %), avec la position horizontale réglable.','En dessous de 100 % de largeur, un flou de la même photo remplit les côtés ; au-dessus, les bords de l’image sont coupés. Les proportions de l’image sont volontairement étirées (le ballon devient plus large).']]);
 </script>
 </body>
 </html>
