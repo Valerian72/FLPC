@@ -790,7 +790,7 @@ const _r4=render;render=function(){_r4();const n=document.getElementById('nav');
  n.querySelectorAll('button').forEach(x=>{const k=((x.getAttribute('onclick')||'').match(/T='(\w+)'/)||[])[1];if(k=='opt')x.classList.toggle('on',T=='opt')});
  document.querySelectorAll('button').forEach(x=>{if(x.textContent.trim()=='\u2190 Options'){x.textContent='\u2190 Admin';x.setAttribute('onclick',"T='adm';render()")}})};
 /* ===== v21 : infos, direct LIVE ===== */
-const isLive=m=>m.date==today()&&!m.fin&&!played(m)&&!m.status;
+const isLive=m=>isLive1h(m);
 const directOk=m=>{const t=today();if(m.date<t)return true;if(m.date>t)return false;const k=new Date(m.date+'T'+((m.time||'00:00').length==5?m.time:'00:00')+':00');return Date.now()>=k.getTime()-3600000};
 const livePill=(m,go)=>`<span ${go?`onclick="event.stopPropagation();MID='${m.id}';MT='d';T='md';render();scrollTo(0,0)"`:''} style="display:inline-flex;align-items:center;justify-content:center;gap:6px;background:#e11d2e;color:#fff;font-weight:800;font-size:.8rem;letter-spacing:.04em;border-radius:999px;padding:5px 12px;cursor:pointer"><span style="width:8px;height:8px;border-radius:50%;background:#fff;animation:lp 1.2s infinite"></span>LIVE</span>`;
 const _mr2=mright;mright=function(m,sz){return isLive(m)?livePill(m,1):_mr2(m,sz)};
@@ -1427,7 +1427,7 @@ mlist=function(){
  const sh=(C.config.hist||{}).all,cur=seas(today()),td=today(),adm=lvl()>=2,real=m=>adm||!(m.mode=='o'&&m.opp=='Pas de match'),
  A=Object.values(C.matches).filter(m=>sh||seas(m.date)==cur).sort((a,b)=>(a.date+(a.time||'')).localeCompare(b.date+(b.time||''))),
  S=wkS(A,td),now=S[0][1],fin=S[2][1],
- up=A.filter(m=>real(m)&&!played(m)&&m.status!='ann'&&m.date>td),
+ up=A.filter(m=>real(m)&&!played(m)&&m.status!='ann'&&m.date>=td&&!now.includes(m)),
  piv=now.length?now:up.slice(0,1),rest=up.filter(m=>!piv.includes(m)),
  shF=fin.slice(0,MPV).reverse(),shU=adm?rest.slice(0,MNX):[],
  h=_mlV340(),i=h.indexOf('<details'),head=i<0?h:h.slice(0,i),
@@ -1867,8 +1867,8 @@ homePage=function(){
  ok=m=>!solo(m)&&m.opp&&m.opp!='Pas de match'&&m.status!='ann',
  A=Object.values(C.matches).filter(ok),
  key=m=>(m.date||'')+(m.time||''),
- live=A.filter(m=>!played(m)&&!m.fin&&m.date==td).sort((a,b)=>key(a).localeCompare(key(b)))[0],
- next=live||A.filter(m=>!played(m)&&m.date>td).sort((a,b)=>key(a).localeCompare(key(b)))[0],
+ live=A.filter(isLive1h).sort((a,b)=>key(a).localeCompare(key(b)))[0],
+ next=live||A.filter(m=>!played(m)&&m.date>=td).sort((a,b)=>key(a).localeCompare(key(b)))[0],
  last=A.filter(played).sort((a,b)=>key(b).localeCompare(key(a)))[0],
  club=C.config.club||{},
  bg=`url('${club.banner||HERO_IMG}')`,
@@ -1876,7 +1876,7 @@ homePage=function(){
  sides=m=>hm(m)?[[m.opp,0],[TEAM,1]]:[[TEAM,1],[m.opp,0]],
  G='#2f9e5e',
  HB=heroBg(club),
- hero=`<div style="${HB.s}">${HB.l}<div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.5),rgba(0,0,0,0) 48%)"></div><div style="position:absolute;left:16px;right:16px;top:18px;display:flex;align-items:center;gap:14px"><img src="${LOGO()}" alt="" style="width:62px;height:62px;border-radius:50%;object-fit:cover;flex:none;background:#fff;border:3px solid #fff;box-shadow:0 2px 10px rgba(0,0,0,.35)"><div style="min-width:0;text-shadow:0 2px 8px rgba(0,0,0,.55)"><div style="font-size:1.55rem;font-weight:800;line-height:1.15;overflow-wrap:anywhere">${esc(TEAM)}</div>${club.slogan?`<div style="font-size:.8rem;opacity:.95;margin-top:3px">${esc(club.slogan)}</div>`:''}</div></div></div>`,
+ hero=`<div style="${HB.s}">${HB.l}<div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.5),rgba(0,0,0,0) 48%)"></div><div style="position:absolute;left:16px;right:64px;top:18px;display:flex;align-items:center;gap:14px"><img src="${LOGO()}" alt="" style="width:62px;height:62px;border-radius:50%;object-fit:cover;flex:none;background:#fff;border:3px solid #fff;box-shadow:0 2px 10px rgba(0,0,0,.35)"><div ${lvl()>=2?'onclick="openSlogan()" ':''}style="min-width:0;${lvl()>=2?'cursor:pointer;':''}text-shadow:0 2px 8px rgba(0,0,0,.55)"><div style="font-size:1.55rem;font-weight:800;line-height:1.15;overflow-wrap:anywhere">${esc(TEAM)}</div>${club.slogan?`<div style="font-size:.8rem;opacity:.95;margin-top:3px">${esc(club.slogan)}</div>`:(lvl()>=2?`<div style="font-size:.78rem;opacity:.75;margin-top:3px">✏️ Ajouter une phrase</div>`:'')}</div></div><button onclick="meBtn()" aria-label="Compte" style="position:absolute;right:12px;top:29px;width:40px;height:40px;min-height:0;padding:0;border-radius:50%;border:0;background:rgba(0,0,0,.42);color:#fff;font-size:1.1rem;line-height:1;display:flex;align-items:center;justify-content:center;box-shadow:none">👤</button></div>`,
  calIc=`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="${G}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>`,
  team=([n,us])=>`<div style="flex:1;min-width:0;text-align:center"><div style="display:flex;justify-content:center">${clogo(n,us,64)}</div><div style="font-weight:700;margin-top:8px;overflow-wrap:anywhere;line-height:1.2">${esc(n)}</div></div>`;
  let nc;
@@ -1889,7 +1889,7 @@ homePage=function(){
    else if(sme=='n')act=`<button onclick="presDlg('${m.id}','n')" style="width:100%;min-height:50px;border-radius:12px;border:0;background:#9ca3af;color:#fff;font-weight:700;font-size:1rem;box-shadow:none">Je ne participe pas</button>`;
    else act=`<button onclick="vote('${m.id}','y')" style="width:100%;min-height:50px;border-radius:12px;border:0;background:${G};color:#fff;font-weight:700;font-size:1rem;box-shadow:none">Je participe</button><button onclick="vote('${m.id}','n')" style="width:100%;min-height:38px;border-radius:12px;border:0;background:transparent;color:var(--mu);font-weight:600;margin-top:4px;box-shadow:none">Je ne peux pas</button>`}
   const dir=live&&typeof directOk=='function'&&directOk(m)?'d':'i';
-  nc=`<div class="c" style="margin:-74px 0 12px;position:relative;padding:16px"><div style="display:flex;align-items:center;gap:8px;font-weight:700;color:${G};font-size:1.05rem">${live?'<span style="width:10px;height:10px;border-radius:50%;background:#e5483a;display:inline-block"></span>':calIc}${live?'Match en cours':'Prochain match'}</div><div class="mu" style="font-size:.88rem;margin-top:8px">${cap(D(m).toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'}))}</div>${when?`<div class="mu" style="font-size:.88rem">${esc(when)}</div>`:''}<div style="display:flex;align-items:center;gap:6px;margin:18px 0 16px">${team(sd[0])}<b style="font-size:1.1rem;flex:none">VS</b>${team(sd[1])}</div><div style="display:flex;align-items:center;gap:8px;font-size:.88rem;margin-bottom:6px"><svg width="20" height="20" viewBox="0 0 24 24" fill="${G}"><circle cx="9" cy="8" r="3.5"/><path d="M2 20c0-3.6 3-6 7-6s7 2.4 7 6z"/><circle cx="17" cy="9" r="2.6"/><path d="M17 14c3 0 5 1.8 5 4.5V20h-4"/></svg><span>${cnt} / ${tot} présents</span></div><div style="height:8px;border-radius:99px;background:var(--bd);overflow:hidden;margin-bottom:14px"><div style="height:100%;width:${pc}%;background:${G};border-radius:99px"></div></div>${act}<button onclick="${open(m,dir)}" style="width:100%;min-height:44px;border-radius:12px;border:0;background:var(--bd);color:var(--tx);font-weight:600;margin-top:8px;box-shadow:none">${live&&dir=='d'?'Voir le direct':'Voir la feuille de match'}</button></div>`}
+  nc=`<div class="c" style="margin:-74px 0 12px;position:relative;padding:16px"><div style="display:flex;align-items:center;gap:8px;font-weight:700;color:${G};font-size:1.05rem">${live?'<span style="width:10px;height:10px;border-radius:50%;background:#e5483a;display:inline-block"></span>':calIc}${live?'Match en cours':(m.date==td?'À venir':'Prochain match')}</div><div class="mu" style="font-size:.88rem;margin-top:8px">${cap(D(m).toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'}))}</div>${when?`<div class="mu" style="font-size:.88rem">${esc(when)}</div>`:''}<div style="display:flex;align-items:center;gap:6px;margin:18px 0 16px">${team(sd[0])}<b style="font-size:1.1rem;flex:none">VS</b>${team(sd[1])}</div><div style="display:flex;align-items:center;gap:8px;font-size:.88rem;margin-bottom:6px"><svg width="20" height="20" viewBox="0 0 24 24" fill="${G}"><circle cx="9" cy="8" r="3.5"/><path d="M2 20c0-3.6 3-6 7-6s7 2.4 7 6z"/><circle cx="17" cy="9" r="2.6"/><path d="M17 14c3 0 5 1.8 5 4.5V20h-4"/></svg><span>${cnt} / ${tot} présents</span></div><div style="height:8px;border-radius:99px;background:var(--bd);overflow:hidden;margin-bottom:14px"><div style="height:100%;width:${pc}%;background:${G};border-radius:99px"></div></div>${act}<button onclick="${open(m,dir)}" style="width:100%;min-height:44px;border-radius:12px;border:0;background:var(--bd);color:var(--tx);font-weight:600;margin-top:8px;box-shadow:none">${live&&dir=='d'?'Voir le direct':'Voir la feuille de match'}</button></div>`}
  else nc=`<div class="c" style="margin:-74px 0 12px;position:relative;text-align:center"><div style="display:flex;align-items:center;justify-content:center;gap:8px;font-weight:700;color:${G}">${calIc}Prochain match</div><div class="mu" style="margin-top:10px">Aucun match à venir pour le moment.</div></div>`;
  let lc;
  if(last){
@@ -1992,6 +1992,173 @@ bannerModal=function(){const A=TMP.adj,mo=A.m||(A.f?'ecran':'perso'),DIS=k=>(BDI
  setTimeout(bannerPrev,0);
  return Wm(`<b>Image de fond de l’accueil</b><div id="bprev" style="margin:12px 0"></div><b style="font-size:.9rem">Mode d’affichage</b><div style="display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 4px">${chips}</div><div class="mu" style="font-size:.75rem">${BDESC[mo]}</div>${sl('z',mo=='etirer'?'Largeur de l’image':'Taille de l’image',40,mo=='etirer'?200:160)}${sl('x','Position horizontale',0,100)}${sl('y','Position verticale',0,100)}${sl('h','Hauteur de la bannière',50,110)}<button style="width:100%;margin-top:12px" onclick="bReset()">Réinitialiser le réglage</button><div style="height:1px;background:var(--bd);margin:14px 0 10px"></div><input type="file" accept="image/*" onchange="pickBanner(this)"><div class="mu" style="font-size:.78rem;margin-top:6px">Choisis une autre photo si tu veux la changer.</div><button style="width:100%;margin-top:8px" onclick="TMP.banner='';TMP.adj={...BADJ_DEF,h:TMP.adj.h};render()">Image d’origine</button><button class="p" style="width:100%;margin-top:10px" onclick="saveBanner()">Enregistrer</button>`)};
 VERS.unshift(['3.96','Admin : mode « Élargir » pour l’image de fond',['Nouveau mode « Élargir » dans le réglage de l’image de fond : l’image garde la hauteur de la bannière et s’étire en largeur grâce au curseur « Largeur de l’image » (de 40 à 200 %), avec la position horizontale réglable.','En dessous de 100 % de largeur, un flou de la même photo remplit les côtés ; au-dessus, les bords de l’image sont coupés. Les proportions de l’image sont volontairement étirées (le ballon devient plus large).']]);
+</script>
+<script>
+/* ===== v3.98 : thèmes de saison pour la bannière de l'Accueil (Noël, Hiver, Printemps, Été, Automne, Halloween...) ===== */
+(function(){const st=document.createElement('style');st.textContent=`
+@keyframes tfall{0%{top:-8%;transform:translateX(0) rotate(0);opacity:0}8%{opacity:1}100%{top:104%;transform:translateX(var(--dx)) rotate(var(--rot));opacity:.9}}
+@keyframes trise{0%{top:104%;transform:translateX(0) rotate(0);opacity:0}10%{opacity:1}100%{top:-10%;transform:translateX(var(--dx)) rotate(var(--rot));opacity:.8}}
+@keyframes tblink{0%,100%{opacity:1}50%{opacity:.3}}
+@keyframes tpulse{0%,100%{opacity:.85}50%{opacity:.5}}
+.tp{position:absolute;pointer-events:none;line-height:1;will-change:top,transform}
+@media (prefers-reduced-motion:reduce){.tp,.tb{animation:none!important}}`;document.head.appendChild(st)})();
+const THEMES={
+ noel:{n:'Noël',ic:'🎄',g:'Joyeux Noël !',tint:'linear-gradient(180deg,rgba(190,25,40,.30),rgba(20,100,50,.12) 55%,rgba(0,0,0,0))',e:['o','o','❄️','o','✨'],cnt:22,k:'fall',dur:9,sz:16,decor:'garland'},
+ nouvelan:{n:'Nouvel An',ic:'🎆',g:'Bonne année !',tint:'linear-gradient(180deg,rgba(10,10,40,.45),rgba(212,175,55,.18) 70%,rgba(0,0,0,0))',e:['🎊','✨','🎉','✨'],cnt:18,k:'fall',dur:8,sz:18},
+ hiver:{n:'Hiver',ic:'❄️',g:'Bon hiver !',tint:'linear-gradient(180deg,rgba(120,170,230,.32),rgba(200,225,255,.10) 60%,rgba(0,0,0,0))',e:['o','❄️','o','o'],cnt:26,k:'fall',dur:11,sz:14},
+ valentin:{n:'Saint-Valentin',ic:'❤️',g:'Joyeuse Saint-Valentin !',tint:'linear-gradient(180deg,rgba(230,60,120,.30),rgba(255,160,190,.10) 60%,rgba(0,0,0,0))',e:['❤️','💗','💖','💕'],cnt:14,k:'rise',dur:10,sz:20},
+ paques:{n:'Pâques',ic:'🐣',g:'Joyeuses Pâques !',tint:'linear-gradient(180deg,rgba(250,230,120,.28),rgba(160,230,160,.12) 60%,rgba(0,0,0,0))',e:['🥚','🐣','🌷','🐰'],cnt:12,k:'fall',dur:12,sz:20},
+ printemps:{n:'Printemps',ic:'🌸',g:'Vive le printemps !',tint:'linear-gradient(180deg,rgba(255,170,200,.22),rgba(150,230,140,.14) 60%,rgba(0,0,0,0))',e:['🌸','🌼','🌸','🌿'],cnt:18,k:'fall',dur:11,sz:18},
+ ete:{n:'Été',ic:'☀️',g:'Vive l’été !',tint:'linear-gradient(180deg,rgba(255,170,60,.28),rgba(255,230,140,.08) 60%,rgba(0,0,0,0))',e:['✨','o'],cnt:10,k:'rise',dur:9,sz:14,decor:'sun'},
+ automne:{n:'Automne',ic:'🍂',g:'Bel automne !',tint:'linear-gradient(180deg,rgba(200,100,20,.30),rgba(150,60,10,.12) 60%,rgba(0,0,0,0))',e:['🍂','🍁','🍂','🍃'],cnt:18,k:'fall',dur:10,sz:22},
+ halloween:{n:'Halloween',ic:'🎃',g:'Joyeux Halloween !',tint:'linear-gradient(180deg,rgba(80,20,120,.45),rgba(255,120,0,.14) 70%,rgba(0,0,0,0))',e:['🎃','👻','🦇'],cnt:10,k:'rise',dur:10,sz:22,decor:'web'}
+};
+function easterOf(y){const a=y%19,b=Math.floor(y/100),c=y%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451),mo=Math.floor((h+l-7*m+114)/31),da=((h+l-7*m+114)%31)+1;return new Date(y,mo-1,da)}
+function autoTheme(d){d=d||new Date();const m=d.getMonth()+1,j=d.getDate();
+ if((m==10&&j>=25)||(m==11&&j==1))return 'halloween';
+ if(m==12&&j<=25)return 'noel';
+ if((m==12&&j>=26)||(m==1&&j<=6))return 'nouvelan';
+ if(m==2&&j>=7&&j<=14)return 'valentin';
+ if(Math.abs(d-easterOf(d.getFullYear()))<=3*86400000)return 'paques';
+ if((m==1&&j>=7)||m==2||(m==3&&j<20))return 'hiver';
+ if((m==3&&j>=20)||m==4||m==5||(m==6&&j<21))return 'printemps';
+ if((m==6&&j>=21)||m==7||m==8||(m==9&&j<22))return 'ete';
+ return 'automne'}
+function themeOf(k){if(!k||k=='none')return null;if(k=='auto')k=autoTheme();return THEMES[k]||null}
+function themeLayers(t){
+ const r=(i,m)=>((Math.sin(i*12.9898+m*78.233)*43758.5453)%1+1)%1;
+ let o=`<div style="position:absolute;inset:0;background:${t.tint};pointer-events:none"></div>`;
+ if(t.decor=='sun')o+=`<div class="tb" style="position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle at 88% 6%,rgba(255,225,130,.75),rgba(255,180,60,.28) 24%,rgba(255,180,60,0) 55%);animation:tpulse 6s ease-in-out infinite"></div>`;
+ if(t.decor=='web')o+=`<div style="position:absolute;right:6px;top:2px;font-size:58px;opacity:.5;filter:grayscale(1) brightness(1.7);pointer-events:none;line-height:1">🕸️</div>`;
+ if(t.decor=='garland'){const cs=['#ff3b3b','#ffd23b','#3bd16f','#3b9bff'];let w='M0 5',b='';
+  for(let i=0;i<8;i++){w+=` Q${25+50*i} 26 ${50+50*i} 5`;const c=cs[i%4],x=25+50*i;b+=`<circle cx="${x}" cy="17" r="8" fill="${c}" opacity=".28"/><circle class="tb" cx="${x}" cy="17" r="4.2" fill="${c}" style="animation:tblink 1.6s ease-in-out ${(i*.27).toFixed(2)}s infinite"/>`}
+  o+=`<svg viewBox="0 0 400 34" preserveAspectRatio="xMidYMin slice" style="position:absolute;left:0;top:0;width:100%;height:34px;pointer-events:none"><path d="${w}" fill="none" stroke="#1a3d22" stroke-width="2"/>${b}</svg>`}
+ for(let i=0;i<t.cnt;i++){const e=t.e[i%t.e.length],l=(r(i,1)*96).toFixed(1),dur=(t.dur*(.7+r(i,2)*.8)).toFixed(1),dl=(-r(i,3)*dur).toFixed(1),sz=Math.round(t.sz*(.7+r(i,4)*.8)),dx=Math.round((r(i,5)-.5)*70),rot=Math.round((r(i,6)-.5)*360),
+  body=e=='o'?`width:${Math.max(3,Math.round(sz/3))}px;height:${Math.max(3,Math.round(sz/3))}px;border-radius:50%;background:#fff;box-shadow:0 0 4px #fff`:`font-size:${sz}px`;
+  o+=`<span class="tp" style="left:${l}%;${body};--dx:${dx}px;--rot:${rot}deg;animation:${t.k=='rise'?'trise':'tfall'} ${dur}s linear ${dl}s infinite">${e=='o'?'':e}</span>`}
+ o+=`<div style="position:absolute;left:14px;bottom:86px;padding:5px 12px;border-radius:99px;background:rgba(0,0,0,.45);font-size:.85rem;font-weight:700;pointer-events:none">${t.ic} ${t.g}</div>`;
+ return o}
+var _hb398=heroBg;
+heroBg=function(club,adjO,srcO,prev){
+ const raw=srcO!==undefined?srcO:(club.banner||''),
+ r=_hb398(club,adjO,(typeof raw=='string'&&raw.indexOf('preset:')==0)?'':raw,prev),
+ t=themeOf(prev&&typeof TMP!='undefined'&&TMP&&TMP.theme!=null?TMP.theme:club.bannerTheme);
+ return t?{s:r.s,l:r.l+themeLayers(t)}:r};
+var _ob398=openBanner;
+openBanner=function(){_ob398();if(TMP&&M=='banner'){TMP.theme=(C.config.club||{}).bannerTheme||'none';render()}};
+function saveBanner(){const b=TMP.banner||'',adj={...TMP.adj},th=TMP.theme||'none';M=null;const o={...(C.config.club||{}),id:'club',bannerAdj:adj,bannerTheme:th};if(b&&b.indexOf('preset:')!=0)o.banner=b;else delete o.banner;put('config','club',o)}
+function bTheme(k){TMP.theme=k;render()}
+var _bm398=bannerModal;
+bannerModal=function(){let h=_bm398();
+ const cur=TMP.theme||'none',
+ L=[['none','Aucun','🚫'],['auto','Automatique','🗓️'],...Object.keys(THEMES).map(k=>[k,THEMES[k].n,THEMES[k].ic])],
+ ch=L.map(([k,l,ic])=>`<button onclick="bTheme('${k}')" style="min-height:36px;padding:6px 12px;border-radius:99px;border:1.5px solid ${cur==k?'#2f9e5e':'var(--bd)'};background:${cur==k?'#2f9e5e':'transparent'};color:${cur==k?'#fff':'var(--tx)'};font-size:.82rem;font-weight:600;box-shadow:none">${ic} ${l}</button>`).join(''),
+ info=cur=='auto'?`Aujourd’hui : ${THEMES[autoTheme()].ic} ${THEMES[autoTheme()].n}. Le thème change tout seul selon la date.`:(cur=='none'?'Pas de décor : seulement la photo.':'Décor animé et teinte par-dessus la photo.'),
+ blk=`<b style="font-size:.9rem">Thème de saison</b><div style="display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 4px">${ch}</div><div class="mu" style="font-size:.75rem;margin-bottom:12px">${info}</div>`;
+ return h.replace('<b style="font-size:.9rem">Mode d’affichage</b>',blk+'<b style="font-size:.9rem">Mode d’affichage</b>')};
+VERS.unshift(['3.98','Fonds d’écran retirés, thèmes de saison à la place',['Les 20 fonds d’écran dessinés sont supprimés.','Admin › Club › « Image de fond de l’accueil » : nouvelle rubrique « Thème de saison ». Neuf thèmes s’ajoutent par-dessus ta photo : Noël (guirlande lumineuse clignotante et neige), Nouvel An (confettis), Hiver (flocons), Saint-Valentin (cœurs), Pâques (œufs et poussins), Printemps (fleurs), Été (soleil), Automne (feuilles) et Halloween (citrouilles, fantômes, chauves-souris).','Chaque thème ajoute une teinte, un décor animé et un petit message de saison. L’option « Automatique » choisit le thème selon la date (Halloween du 25 octobre au 1er novembre, Noël jusqu’au 25 décembre, Nouvel An jusqu’au 6 janvier, Saint-Valentin du 7 au 14 février, Pâques autour du dimanche de Pâques, puis les saisons).','Par défaut aucun thème n’est activé ; l’animation s’arrête si l’appareil est réglé sur « réduire les animations ».']]);
+</script>
+<script>
+/* ===== v3.99 : Accueil sans bandeau, match « en cours » 1 h avant, icônes de la barre, page Matchs comme la maquette ===== */
+(function(){const st=document.createElement('style');st.textContent=`
+nav button .ni{width:26px;height:26px;display:block;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+nav button b{display:flex;line-height:0}
+nav button.on{background:none}
+nav button.on .ni .bg{fill:currentColor}
+nav button.on .ni .fg{stroke:#fff}`;document.head.appendChild(st)})();
+function isLive1h(m){if(!m||played(m)||m.fin||m.status||m.date!=today())return false;
+ if(!m.time)return true;const t=String(m.time).split(':'),d=new Date();d.setHours(+t[0]||0,+t[1]||0,0,0);return Date.now()>=d.getTime()-3600000}
+const NAVIC={
+ home:'<path class="bg" d="M4 11l8-6.5 8 6.5v8.5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1z"/><path class="fg" d="M10 20.5v-5.5h4v5.5"/>',
+ cal:'<rect class="bg" x="3" y="4.5" width="18" height="16.5" rx="3.5"/><path class="fg" d="M3 9.5h18M8 3v3M16 3v3M8.8 15l2.4 2.4 4-4.2"/>',
+ st:'<rect class="bg" x="4" y="11" width="4.2" height="9" rx="1.2"/><rect class="bg" x="9.9" y="5" width="4.2" height="15" rx="1.2"/><rect class="bg" x="15.8" y="9" width="4.2" height="11" rx="1.2"/>'};
+function navIcons(){const n=document.getElementById('nav');if(!n)return;
+ n.querySelectorAll('button').forEach(b=>{const k=b.hasAttribute('data-home')?'home':((b.getAttribute('onclick')||'').match(/T='(\w+)'/)||[])[1];
+  if(NAVIC[k]){const e=b.querySelector('b');if(e)e.innerHTML='<svg class="ni" viewBox="0 0 24 24">'+NAVIC[k]+'</svg>'}})}
+function topBar(){const t=document.querySelector('.top');if(!t)return;t.style.display=((T=='home'||T=='cal')&&!gated())?'none':''}
+var MFS='all';
+function setMF(k){MFS=k;render();scrollTo(0,0)}
+function matchsPage(){
+ const adm=lvl()>=2,sh=(C.config.hist||{}).all,cur=seas(today()),td=today(),cap=x=>x.charAt(0).toUpperCase()+x.slice(1),
+ real=m=>adm||!(m.mode=='o'&&m.opp=='Pas de match'),
+ key=m=>(m.date||'')+(m.time||''),
+ A=Object.values(C.matches).filter(m=>(sh||seas(m.date)==cur)&&real(m)),
+ isUp=m=>!played(m)&&m.date>=td&&m.status!='ann',
+ L=(MFS=='up'?A.filter(isUp).sort((a,b)=>key(a).localeCompare(key(b))):MFS=='fin'?A.filter(played).sort((a,b)=>key(b).localeCompare(key(a))):A.slice().sort((a,b)=>key(b).localeCompare(key(a)))),
+ card=m=>{const so=solo(m),lv=isLive1h(m),pl=played(m),
+  dt=cap(D(m).toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'})),tm=(m.time||'').replace(':','h'),
+  chip=m.status=='ann'?['Annulé','#eceff1','#6b7280']:lv?['En cours','#fde8e6','#c0392b']:pl?['Terminé','#dff3e6','#1c8a4a']:['À venir','#e3edfc','#1d5fd1'],
+  nmS='font-weight:600;font-size:.98rem;overflow-wrap:anywhere;line-height:1.3';
+  let left,lines;
+  if(so){const ev=EVT[m.mode||'o']||EVT.o;left=`<span style="font-size:1.7rem;width:44px;flex:none;text-align:center;line-height:1">${ev[1]}</span>`;
+   lines=`<div style="${nmS}">${esc(ev[0])}</div>${m.opp&&m.opp!='Pas de match'?`<div style="${nmS}">${esc(m.opp)}</div>`:''}`}
+  else{const sd=hm(m)?[[m.opp,0,m.them],[TEAM,1,m.us]]:[[TEAM,1,m.us],[m.opp,0,m.them]];
+   left=`<span style="flex:none">${clogo(sd[0][0],sd[0][1],44)}</span>`;
+   lines=`<div style="${nmS}">${esc(sd[0][0])}</div>`+(pl?`<div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap"><b style="font-size:1.4rem;white-space:nowrap">${sd[0][2]} - ${sd[1][2]}</b><span style="${nmS}">${esc(sd[1][0])}</span></div>`:`<div style="${nmS}">${esc(sd[1][0])}</div>`)}
+  return `<div class="c" onclick="MID='${m.id}';MT='i';T='md';render();scrollTo(0,0)" style="cursor:pointer;margin:10px 0;padding:14px 16px;border-radius:18px"><div class="mu" style="font-size:.85rem">${dt}${tm?' - '+tm:''}</div><div style="display:flex;align-items:center;gap:12px;margin-top:8px">${left}<div style="flex:1;min-width:0">${lines}</div><span style="flex:none;padding:7px 14px;border-radius:10px;background:${chip[1]};color:${chip[2]};font-weight:600;font-size:.88rem">${chip[0]}</span></div></div>`},
+ band=`<div style="background:#13262d;color:#fff;margin:-12px calc(-1*max(12px,env(safe-area-inset-right,0px))) 14px calc(-1*max(12px,env(safe-area-inset-left,0px)));padding:calc(env(safe-area-inset-top,0px) + 18px) max(16px,env(safe-area-inset-right,0px)) 16px max(16px,env(safe-area-inset-left,0px));display:flex;align-items:center;justify-content:space-between;gap:10px"><div style="font-size:1.5rem;font-weight:800">Matchs</div>${can('match')?`<button onclick="T='ev';render();scrollTo(0,0)" style="background:#1fa35c;color:#fff;border:0;border-radius:14px;min-height:46px;padding:0 18px;font-weight:700;font-size:1rem;display:flex;align-items:center;gap:8px;box-shadow:none"><span style="font-size:1.5rem;line-height:1">+</span>Ajouter</button>`:''}</div>`,
+ seg=`<div style="display:flex;background:var(--bd);border-radius:16px;padding:4px;gap:2px;margin-bottom:6px">${[['all','Tous'],['up','À venir'],['fin','Terminés']].map(([k,l])=>`<button onclick="setMF('${k}')" style="flex:1;min-height:42px;border:0;border-radius:13px;font-weight:600;font-size:.95rem;box-shadow:none;background:${MFS==k?'#1fa35c':'transparent'};color:${MFS==k?'#fff':'var(--tx)'}">${l}</button>`).join('')}</div>`;
+ let body='',mo='';
+ L.forEach(m=>{const lab=cap(D(m).toLocaleDateString('fr-FR',{month:'long',year:'numeric'}));if(lab!=mo){mo=lab;body+=`<div style="font-weight:800;font-size:1.05rem;margin:18px 2px 4px">${lab}</div>`}body+=card(m)});
+ return band+seg+(body||'<p class="mu" style="text-align:center;padding:36px 0">Aucun match</p>')}
+var _v399=view;
+view=function(){if(!gated()&&T=='cal')return matchsPage();return _v399()};
+var _r399=render;
+render=function(){_r399();navIcons();topBar()};
+VERS.unshift(['3.99','Accueil sans bandeau, « en cours » 1 h avant, icônes de la barre, page Matchs comme la maquette',['Accueil : le bandeau avec le logo et le nom du club et le bouton « + » ne s’affichent plus ; un petit bouton 👤 en haut à droite de la photo donne accès au compte.','Le match du jour passe « en cours » seulement 1 h avant l’heure de début ; avant, il reste « Prochain match ».','Barre du bas : nouvelles icônes pour Accueil (maison), Matchs (calendrier validé) et Stats (histogramme) ; l’onglet actif est en vert plein, sans fond.','Page Matchs refaite comme la maquette : bandeau sombre en haut avec le titre « Matchs » et le bouton vert « + Ajouter », filtre Tous / À venir / Terminés, mois en titres, et cartes avec date et heure, logo, équipes, score en gros et pastille À venir / Terminé / En cours.','La page Matchs n’a plus l’ancien défilement par semaines ni le sélecteur de saison ; elle affiche la saison en cours (ou toutes les saisons si l’historique est activé).']]);
+</script>
+<script>
+/* ===== v3.100 : Accueil « À venir », phrase d'accroche, icônes de la barre, Matchs (ancien affichage + filtre) ===== */
+(function(){const st=document.createElement('style');st.textContent=`
+nav button .ni .ff{fill:currentColor;stroke:none}
+nav button .ni .dt{fill:currentColor;stroke:none}`;document.head.appendChild(st)})();
+/* icônes de la barre comme sur l'image */
+NAVIC.home='<path class="bg" d="M4 11l8-6.5 8 6.5v8.5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1z"/><path class="fg" d="M10 20.5v-5.5h4v5.5"/>';
+NAVIC.cal='<rect class="bg" x="3" y="4.5" width="18" height="16.5" rx="3.5"/><path class="fg" d="M3 9.5h18M8 3v3M16 3v3M8.8 15l2.4 2.4 4-4.2"/>';
+NAVIC.st='<rect class="ff" x="4" y="11" width="4.2" height="9" rx="1.2"/><rect class="ff" x="9.9" y="5" width="4.2" height="15" rx="1.2"/><rect class="ff" x="15.8" y="9" width="4.2" height="11" rx="1.2"/>';
+NAVIC.pl='<circle class="ff" cx="9" cy="8" r="3.4"/><path class="ff" d="M2.6 19.5c0-3.5 2.8-5.6 6.4-5.6s6.4 2.1 6.4 5.6z"/><circle class="ff" cx="17" cy="9" r="2.6" opacity=".7"/><path class="ff" d="M16.6 14.2c3 0 4.9 1.6 4.9 4.3v1h-4z" opacity=".7"/>';
+NAVIC.opt='<circle class="dt" cx="5" cy="12" r="1.9"/><circle class="dt" cx="12" cy="12" r="1.9"/><circle class="dt" cx="19" cy="12" r="1.9"/>';
+/* le match du jour reste dans « À venir » tant qu'il n'est pas « en cours » (1 h avant) */
+var _wkS3100=wkS;
+wkS=function(A,td){const S=_wkS3100(A,td),early=S[0][1].filter(m=>!isLive1h(m));
+ if(early.length){S[0][1]=S[0][1].filter(isLive1h);S[1][1]=early.concat(S[1][1])}return S};
+/* le nom / logo du club ne doit pas effacer les autres réglages du club */
+function saveClub(){const n=TMP.name.trim()||'FLPC';M=null;put('config','club',{...(C.config.club||{}),id:'club',name:n,logo:TMP.logo})}
+/* tuile de match : ancien affichage + logo de l'équipe qui accueille */
+var _ml3100=mleft;
+mleft=function(m,z){if(solo(m))return _ml3100(m,z);
+ const aw=hm(m),H=aw?[m.opp,0]:[TEAM,1],lab=`<div style="font-size:.6rem;font-weight:400;color:#9aa0a6">${tg(m)}</div>`,
+ rows=aw?crow(m.opp,0,1,z)+crow(TEAM,1,0,z):crow(TEAM,1,1,z)+crow(m.opp,0,0,z);
+ return lab+`<div style="display:flex;align-items:center;gap:10px">${clogo(H[0],H[1],40)}<div style="flex:1;min-width:0">${rows}</div></div>`};
+/* phrase d'accroche du club (admin) */
+const SLG=['Plus qu’une équipe, une bande de copains !','Le foot, c’est avant tout du plaisir !','Ensemble, on va plus loin.','Un club, une famille.','Jouer, rire, gagner… dans cet ordre !','Fair-play, plaisir et bonne humeur.','On joue pour le plaisir, on gagne pour le fun !','La passion du ballon rond.','Gagner, c’est bien. S’amuser, c’est mieux.','Tous unis derrière le maillot.','Le foot entre amis, la meilleure des équipes.','Solidaires sur le terrain, soudés en dehors.'];
+function openSlogan(){if(lvl()<2)return;TMP={slogan:(C.config.club||{}).slogan||''};M='slogan';render()}
+function pickSlg(i){TMP.slogan=SLG[i];render()}
+function saveSlg(){const v=(TMP.slogan||'').trim();M=null;const o={...(C.config.club||{}),id:'club'};if(v)o.slogan=v;else delete o.slogan;put('config','club',o)}
+function sloganModal(){const v=TMP.slogan||'';
+ return Wm(`<b>Phrase d’accroche du club</b><div class="mu" style="font-size:.8rem;margin:4px 0 10px">Elle s’affiche sous le nom du club, sur l’accueil.</div><textarea maxlength="90" rows="2" oninput="TMP.slogan=this.value" placeholder="Écris ta phrase…" style="width:100%;box-sizing:border-box;border-radius:12px;padding:10px;font:inherit;resize:none">${esc(v)}</textarea><div style="font-weight:700;font-size:.85rem;margin:12px 0 6px">Ou choisis une phrase</div>${SLG.map((t,i)=>`<div onclick="pickSlg(${i})" style="padding:10px 12px;border-radius:12px;border:1.5px solid ${v==t?'#2f9e5e':'var(--bd)'};margin:6px 0;cursor:pointer;font-size:.9rem">${esc(t)}</div>`).join('')}<button class="p" style="width:100%;margin-top:12px" onclick="saveSlg()">Enregistrer</button><button style="width:100%;margin-top:8px" onclick="TMP.slogan='';render()">Effacer la phrase</button><button style="width:100%;margin-top:8px" onclick="M=null;openClub()">Modifier le nom et le logo</button>`)}
+var _md3100=modal;
+modal=function(){return M=='slogan'?sloganModal():_md3100()};
+/* page Matchs : bandeau sombre, Tous / À venir / Terminés, filtre équipe-année, ancien affichage des tuiles */
+var _mlOld3100=mlist;
+function matchFilter(){const sh=(C.config.hist||{}).all,cur=seas(today()),f=VW.k,
+ lab=f=='a'||(f=='s'&&!VW.v&&sh)?'Tous les matchs':f=='m'?mlab(VW.v):f=='y'?'Année '+VW.v:f=='t'?'Équipe : '+VW.v:'Saison '+(VW.v||cur);
+ return `<div style="position:relative;margin:6px 0"><button onclick="VO=!VO;render()" style="font-weight:700">${lab} ▾</button>${VO?`<div class="c" style="position:absolute;z-index:6;top:100%;left:0;width:min(290px,92vw);padding:10px;box-shadow:0 8px 24px #0004"><div class="r" style="margin:8px 0">${[['s','Saison'],['m','Mois'],['y','Année'],['t','Équipe']].map(([k,l])=>`<button class="${VM==k?'on':''}" onclick="VM='${k}';VQ='';render()">${l}</button>`).join('')}</div><div id="vres" style="max-height:210px;overflow:auto">${vres()}</div></div>`:''}</div>`}
+matchsPage=function(){
+ const adm=lvl()>=2,sh=(C.config.hist||{}).all,cur=seas(today()),td=today(),cap=x=>x.charAt(0).toUpperCase()+x.slice(1),f=VW.k,
+ real=m=>adm||!(m.mode=='o'&&m.opp=='Pas de match'),key=m=>(m.date||'')+(m.time||''),
+ band=`<div class="mband" style="background:#13262d;color:#fff;margin:-12px calc(-1*max(12px,env(safe-area-inset-right,0px))) 0 calc(-1*max(12px,env(safe-area-inset-left,0px)));padding:calc(env(safe-area-inset-top,0px) + 18px) max(16px,env(safe-area-inset-right,0px)) 16px max(16px,env(safe-area-inset-left,0px));display:flex;align-items:center;justify-content:space-between;gap:10px"><div style="font-size:1.5rem;font-weight:800">Matchs</div>${lvl()>=1.5?`<button onclick="T='ev';render();scrollTo(0,0)" style="background:#1fa35c;color:#fff;border:0;border-radius:14px;min-height:46px;padding:0 18px;font-weight:700;font-size:1rem;display:flex;align-items:center;gap:8px;box-shadow:none"><span style="font-size:1.5rem;line-height:1">+</span>Ajouter</button>`:''}</div>`,
+ seg=`<div class="mseg" style="display:flex;background:var(--bd);border-radius:16px;padding:4px;gap:2px">${[['all','Tous'],['up','À venir'],['fin','Terminés']].map(([k,l])=>`<button onclick="setMF('${k}')" style="flex:1;min-height:42px;border:0;border-radius:13px;font-weight:600;font-size:.95rem;box-shadow:none;background:${MFS==k?'#1fa35c':'transparent'};color:${MFS==k?'#fff':'var(--tx)'}">${l}</button>`).join('')}</div>`,
+ css=`<style>#mhead>div.mband{margin:-12px calc(-1*max(12px,env(safe-area-inset-right,0px))) 0 calc(-1*max(12px,env(safe-area-inset-left,0px)))!important}#mhead>div.mseg{margin:12px 0 0!important}</style>`;
+ if(MFS=='all'){const _f=mFiltOn;mFiltOn=()=>true;let h;try{h=_mlOld3100()}finally{mFiltOn=_f}
+  const hd=band+seg;
+  return css+(h.indexOf('<div id="mhead">')>=0?h.replace('<div id="mhead">','<div id="mhead">'+hd):hd+'<div style="height:12px"></div>'+h)}
+ const A=Object.values(C.matches).filter(m=>real(m)&&(f=='a'||(f=='s'&&!VW.v&&sh)||(f=='s'?seas(m.date)==(VW.v||cur):f=='m'?m.date.slice(0,7)==VW.v:f=='t'?!solo(m)&&(m.opp||'').trim().toLowerCase()==(VW.v||'').toLowerCase():m.date.slice(0,4)==VW.v))),
+ L=MFS=='up'?A.filter(m=>!played(m)&&m.date>=td&&m.status!='ann').sort((a,b)=>key(a).localeCompare(key(b))):A.filter(m=>played(m)||m.date<td).sort((a,b)=>key(b).localeCompare(key(a)));
+ let body='',mo='';
+ L.forEach(m=>{const lab=cap(D(m).toLocaleDateString('fr-FR',{month:'long',year:'numeric'}));if(lab!=mo){mo=lab;body+=`<div style="font-weight:800;font-size:1.05rem;margin:18px 2px 4px">${lab}</div>`}body+=mrow(m)});
+ return band+'<div style="height:12px"></div>'+seg+matchFilter()+(body||'<p class="mu" style="text-align:center;padding:36px 0">Aucun match</p>')};
+VERS.unshift(['3.100','Accueil « À venir », phrase du club, icônes, Matchs avec l’ancien affichage',['Accueil : le jour d’un match, la carte s’appelle « À venir » (puis « Match en cours » 1 h avant le début) ; sans match ce jour-là, elle reste « Prochain match ». La règle « en cours 1 h avant » s’applique maintenant aussi à l’onglet Matchs et aux pastilles En cours.','Accueil (admin) : toucher le nom du club ouvre « Phrase d’accroche du club » : on écrit sa phrase ou on choisit parmi 12 phrases toutes faites ; Effacer et un lien vers le nom et le logo du club.','Correction : modifier le nom ou le logo du club n’efface plus l’image de fond, le thème de saison ni la phrase.','Barre du bas : icônes comme sur l’image (maison, calendrier validé vert, personnes, histogramme, trois points).','Bouton 👤 de l’Accueil recentré à hauteur du logo et du nom.','Matchs : « + Ajouter » réservé aux admins et coachs ; le filtre Tous reprend l’ancien défilement avec tous les matchs, et un bouton Saison / Mois / Année / Équipe est toujours visible ; À venir et Terminés se classent par mois.','Tuiles de match : ancien affichage (date, scores, boutons Présent / Absent) avec le logo de l’équipe qui reçoit.']]);
 </script>
 </body>
 </html>
