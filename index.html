@@ -790,6 +790,9 @@ const _r4=render;render=function(){_r4();const n=document.getElementById('nav');
  n.querySelectorAll('button').forEach(x=>{const k=((x.getAttribute('onclick')||'').match(/T='(\w+)'/)||[])[1];if(k=='opt')x.classList.toggle('on',T=='opt')});
  document.querySelectorAll('button').forEach(x=>{if(x.textContent.trim()=='\u2190 Options'){x.textContent='\u2190 Admin';x.setAttribute('onclick',"T='adm';render()")}})};
 /* ===== v21 : infos, direct LIVE ===== */
+/* « en cours » seulement 1 h avant l'heure de début */
+function isLive1h(m){if(!m||played(m)||m.fin||m.status||m.date!=today())return false;
+ if(!m.time)return true;const t=String(m.time).split(':'),d=new Date();d.setHours(+t[0]||0,+t[1]||0,0,0);return Date.now()>=d.getTime()-3600000}
 const isLive=m=>isLive1h(m);
 const directOk=m=>{const t=today();if(m.date<t)return true;if(m.date>t)return false;const k=new Date(m.date+'T'+((m.time||'00:00').length==5?m.time:'00:00')+':00');return Date.now()>=k.getTime()-3600000};
 const livePill=(m,go)=>`<span ${go?`onclick="event.stopPropagation();MID='${m.id}';MT='d';T='md';render();scrollTo(0,0)"`:''} style="display:inline-flex;align-items:center;justify-content:center;gap:6px;background:#e11d2e;color:#fff;font-weight:800;font-size:.8rem;letter-spacing:.04em;border-radius:999px;padding:5px 12px;cursor:pointer"><span style="width:8px;height:8px;border-radius:50%;background:#fff;animation:lp 1.2s infinite"></span>LIVE</span>`;
@@ -2066,8 +2069,6 @@ nav button b{display:flex;line-height:0}
 nav button.on{background:none}
 nav button.on .ni .bg{fill:currentColor}
 nav button.on .ni .fg{stroke:#fff}`;document.head.appendChild(st)})();
-function isLive1h(m){if(!m||played(m)||m.fin||m.status||m.date!=today())return false;
- if(!m.time)return true;const t=String(m.time).split(':'),d=new Date();d.setHours(+t[0]||0,+t[1]||0,0,0);return Date.now()>=d.getTime()-3600000}
 const NAVIC={
  home:'<path class="bg" d="M4 11l8-6.5 8 6.5v8.5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1z"/><path class="fg" d="M10 20.5v-5.5h4v5.5"/>',
  cal:'<rect class="bg" x="3" y="4.5" width="18" height="16.5" rx="3.5"/><path class="fg" d="M3 9.5h18M8 3v3M16 3v3M8.8 15l2.4 2.4 4-4.2"/>',
@@ -2187,6 +2188,7 @@ function topBar(){const t=document.querySelector('.top'),n=document.getElementBy
  if(t)t.style.display=(g||T=='home'||T=='cal')?'none':'';
  if(n&&g)n.style.display='none'}
 VERS.unshift(['4.1','Écran de connexion modernisé',['L’écran d’identification reprend le style de l’accueil : photo de fond du club avec logo et nom, carte arrondie qui la chevauche, champs gris clair, bouton vert « Se connecter » et bouton « Code oublié ? » contour vert, au lieu du noir et jaune.','Il suit le mode clair ou sombre de l’appareil et la photo choisie dans Admin.','Sur cet écran, la barre du haut (logo et profil) et la barre du bas ne s’affichent plus.']]);
+VERS.unshift(['4.2','Correction du démarrage de l’application',['Correction d’une erreur « isLive1h is not defined » qui bloquait l’affichage au lancement quand une session était déjà ouverte : la règle « en cours 1 h avant » est maintenant chargée dès le début de l’application.']]);
 </script>
 </body>
 </html>
