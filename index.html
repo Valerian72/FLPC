@@ -2007,8 +2007,8 @@ VERS.unshift(['3.96','Admin : mode « Élargir » pour l’image de fond',['Nouv
 @keyframes trise{0%{top:104%;transform:translateX(0) rotate(0);opacity:0}10%{opacity:1}100%{top:-10%;transform:translateX(var(--dx)) rotate(var(--rot));opacity:.8}}
 @keyframes tblink{0%,100%{opacity:1}50%{opacity:.3}}
 @keyframes tpulse{0%,100%{opacity:.85}50%{opacity:.5}}
-.tp{position:absolute;pointer-events:none;line-height:1;will-change:top,transform}
-@media (prefers-reduced-motion:reduce){.tp,.tb{animation:none!important}}`;document.head.appendChild(st)})();
+.tpar{position:absolute;pointer-events:none;line-height:1;will-change:top,transform}
+@media (prefers-reduced-motion:reduce){.tpar,.thb{animation:none!important}}`;document.head.appendChild(st)})();
 const THEMES={
  noel:{n:'Noël',ic:'🎄',g:'Joyeux Noël !',tint:'linear-gradient(180deg,rgba(190,25,40,.30),rgba(20,100,50,.12) 55%,rgba(0,0,0,0))',e:['o','o','❄️','o','✨'],cnt:22,k:'fall',dur:9,sz:16,decor:'garland'},
  nouvelan:{n:'Nouvel An',ic:'🎆',g:'Bonne année !',tint:'linear-gradient(180deg,rgba(10,10,40,.45),rgba(212,175,55,.18) 70%,rgba(0,0,0,0))',e:['🎊','✨','🎉','✨'],cnt:18,k:'fall',dur:8,sz:18},
@@ -2035,14 +2035,14 @@ function themeOf(k){if(!k||k=='none')return null;if(k=='auto')k=autoTheme();retu
 function themeLayers(t){
  const r=(i,m)=>((Math.sin(i*12.9898+m*78.233)*43758.5453)%1+1)%1;
  let o=`<div style="position:absolute;inset:0;background:${t.tint};pointer-events:none"></div>`;
- if(t.decor=='sun')o+=`<div class="tb" style="position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle at 88% 6%,rgba(255,225,130,.75),rgba(255,180,60,.28) 24%,rgba(255,180,60,0) 55%);animation:tpulse 6s ease-in-out infinite"></div>`;
+ if(t.decor=='sun')o+=`<div class="thb" style="position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle at 88% 6%,rgba(255,225,130,.75),rgba(255,180,60,.28) 24%,rgba(255,180,60,0) 55%);animation:tpulse 6s ease-in-out infinite"></div>`;
  if(t.decor=='web')o+=`<div style="position:absolute;right:6px;top:2px;font-size:58px;opacity:.5;filter:grayscale(1) brightness(1.7);pointer-events:none;line-height:1">🕸️</div>`;
  if(t.decor=='garland'){const cs=['#ff3b3b','#ffd23b','#3bd16f','#3b9bff'];let w='M0 5',b='';
-  for(let i=0;i<8;i++){w+=` Q${25+50*i} 26 ${50+50*i} 5`;const c=cs[i%4],x=25+50*i;b+=`<circle cx="${x}" cy="17" r="8" fill="${c}" opacity=".28"/><circle class="tb" cx="${x}" cy="17" r="4.2" fill="${c}" style="animation:tblink 1.6s ease-in-out ${(i*.27).toFixed(2)}s infinite"/>`}
+  for(let i=0;i<8;i++){w+=` Q${25+50*i} 26 ${50+50*i} 5`;const c=cs[i%4],x=25+50*i;b+=`<circle cx="${x}" cy="17" r="8" fill="${c}" opacity=".28"/><circle class="thb" cx="${x}" cy="17" r="4.2" fill="${c}" style="animation:tblink 1.6s ease-in-out ${(i*.27).toFixed(2)}s infinite"/>`}
   o+=`<svg viewBox="0 0 400 34" preserveAspectRatio="xMidYMin slice" style="position:absolute;left:0;top:0;width:100%;height:34px;pointer-events:none"><path d="${w}" fill="none" stroke="#1a3d22" stroke-width="2"/>${b}</svg>`}
  for(let i=0;i<t.cnt;i++){const e=t.e[i%t.e.length],l=(r(i,1)*96).toFixed(1),dur=(t.dur*(.7+r(i,2)*.8)).toFixed(1),dl=(-r(i,3)*dur).toFixed(1),sz=Math.round(t.sz*(.7+r(i,4)*.8)),dx=Math.round((r(i,5)-.5)*70),rot=Math.round((r(i,6)-.5)*360),
   body=e=='o'?`width:${Math.max(3,Math.round(sz/3))}px;height:${Math.max(3,Math.round(sz/3))}px;border-radius:50%;background:#fff;box-shadow:0 0 4px #fff`:`font-size:${sz}px`;
-  o+=`<span class="tp" style="left:${l}%;${body};--dx:${dx}px;--rot:${rot}deg;animation:${t.k=='rise'?'trise':'tfall'} ${dur}s linear ${dl}s infinite">${e=='o'?'':e}</span>`}
+  o+=`<span class="tpar" style="left:${l}%;${body};--dx:${dx}px;--rot:${rot}deg;animation:${t.k=='rise'?'trise':'tfall'} ${dur}s linear ${dl}s infinite">${e=='o'?'':e}</span>`}
  o+=`<div style="position:absolute;left:14px;bottom:86px;padding:5px 12px;border-radius:99px;background:rgba(0,0,0,.45);font-size:.85rem;font-weight:700;pointer-events:none">${t.ic} ${t.g}</div>`;
  return o}
 var _hb398=heroBg;
@@ -2212,6 +2212,7 @@ VERS.unshift(['4.5','Profil équipe : uniquement dans la gestion admin',['« Mon
 var PIT='perso';
 VERS.unshift(['4.6','Mes informations : onglets Perso et Club',['« Mes informations » a deux onglets : Perso (nom, prénom, surnom, email, téléphone, date de naissance, mot de passe, bouton Enregistrer) et Club.','L’onglet Club affiche, sans pouvoir les modifier : rôle, poste principal et secondaire, numéro de maillot, numéro de licence et année d’arrivée. Un admin les modifie dans Admin › Gestion des membres.']]);
 VERS.unshift(['4.7','Mes informations : bouton mot de passe centré',['Dans l’onglet Perso, la rubrique « Mot de passe » et le bouton « Changer mon mot de passe » sont centrés.']]);
+VERS.unshift(['4.8','Correction : sélecteur d’horaires du match',['Correction d’un bug d’affichage dans « Modifier le match › Horaires » : les sélecteurs d’heures (Heure du RDV, Heure du match, Fin) se chevauchaient et devenaient minuscules, à cause du décor de saison ajouté en 3.98 qui utilisait le même nom de style. Les sélecteurs retrouvent leur taille normale, avec les grandes flèches et les chiffres bien lisibles.']]);
 </script>
 </body>
 </html>
